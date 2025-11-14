@@ -33,27 +33,21 @@
 //   );
 // }
 
-
-
-
-
-
-
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { SeoConfigProvider } from '../context/SeoConfigContext';
-import SeoMeta from '../components/SeoMeta';
-import DynamicScripts from '../components/DynamicScripts';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { SeoConfigProvider } from "../context/SeoConfigContext";
+import SeoMeta from "../components/SeoMeta";
+import DynamicScripts from "../components/DynamicScripts";
 // import DynamicHeader from '../components/DynamicHeader';
 // import DynamicFooter from '../components/DynamicFooter';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 // Default metadata (can be overridden by dynamic SEO config)
 export const metadata: Metadata = {
-  title: 'Default Title',
-  description: 'Default description',
+  title: "Default Title",
+  description: "Default description",
 };
 
 export default function RootLayout({
@@ -73,9 +67,7 @@ export default function RootLayout({
           {/* <DynamicHeader /> */}
 
           {/* Your existing app content */}
-          <main>
-            {children}
-          </main>
+          <main>{children}</main>
 
           {/* Dynamic branding footer */}
           {/* <DynamicFooter /> */}
@@ -83,25 +75,7 @@ export default function RootLayout({
       </body>
     </html>
   );
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import type { Metadata } from 'next';
 // import { Inter } from 'next/font/google';
@@ -118,15 +92,15 @@ export default function RootLayout({
 //   try {
 //     // In production, you can get the domain from headers
 //     const domain =  'theartemis.ai';
-    
+
 //     const response = await fetch(
-//       `http://157.20.214.84:9292/api/v1/seo-websites/domain/${domain}`,
-//       { 
+//       `https://157.20.214.84:9292/api/v1/seo-websites/domain/${domain}`,
+//       {
 //         headers: { "X-Tenant": "68b20dd0fb42964f2328b424" },
 //         next: { revalidate: 3600 } // Cache for 1 hour
 //       }
 //     );
-    
+
 //     if (response.ok) {
 //       return await response.json();
 //     }
@@ -140,7 +114,7 @@ export default function RootLayout({
 // // Generate metadata dynamically
 // export async function generateMetadata(): Promise<Metadata> {
 //   const seoConfig = await getSeoConfig();
-  
+
 //   if (!seoConfig) {
 //     return {
 //       title: 'Default Title',
@@ -149,7 +123,7 @@ export default function RootLayout({
 //   }
 
 //   const { seoConfig: config } = seoConfig;
-  
+
 //   return {
 //     title: config.metaTitle,
 //     description: config.metaDescription,

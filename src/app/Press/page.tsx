@@ -105,7 +105,7 @@ const PressRelease: React.FC = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          'http://157.20.214.84:9292/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
+          'https://157.20.214.84:9292/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
           {
             method: 'GET',
             headers: {
@@ -817,7 +817,7 @@ export default PressRelease;
 //       try {
 //         setLoading(true);
 //         const response = await fetch(
-//           'http://157.20.214.84:9292/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
+//           'https://157.20.214.84:9292/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
 //           {
 //             method: 'GET',
 //             headers: {

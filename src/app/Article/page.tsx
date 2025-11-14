@@ -63,7 +63,7 @@ const ArticlePage = () => {
         setError(null);
         
         console.log('🔍 Fetching articles from API...');
-        const response = await fetch('http://157.20.214.84:9292/api/v1/seo-articles', {
+        const response = await fetch('https://157.20.214.84:9292/api/v1/seo-articles', {
           method: 'GET',
           headers: {
             'accept': '*/*',
@@ -300,7 +300,7 @@ const ArticlePage = () => {
           border: '1px solid #10b981'
         }}>
           <strong>📡 API Status:</strong> Connected to{' '}
-          <code>http://157.20.214.84:9292/api/v1/seo-articles</code>{' '}
+          <code>https://157.20.214.84:9292/api/v1/seo-articles</code>{' '}
           | Showing <strong>{filteredArticles.length}</strong> of{' '}
           <strong>{articles.length}</strong> published articles
           {selectedArticle && (
@@ -802,7 +802,7 @@ export default ArticlePage;
 //   const fetchArticles = async () => {
 //     try {
 //       setLoading(true);
-//       const response = await fetch('http://157.20.214.84:9292/api/v1/seo-articles', {
+//       const response = await fetch('https://157.20.214.84:9292/api/v1/seo-articles', {
 //         headers: {
 //           'accept': '*/*',
 //           'X-Tenant': '68b20dd0fb42964f2328b424'

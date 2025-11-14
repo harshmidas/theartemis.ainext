@@ -71,7 +71,7 @@
 //       try {
 //         setLoading(true);
 //         const response = await fetch(
-//           'http://157.20.214.84:9292/api/v1/seo-blogs/slug/future-of-healthcare-automation-artemis',
+//           'https://157.20.214.84:9292/api/v1/seo-blogs/slug/future-of-healthcare-automation-artemis',
 //           {
 //             method: 'GET',
 //             headers: {
@@ -572,7 +572,7 @@ const BlogPost: React.FC = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          'http://157.20.214.84:9292/api/v1/seo-blogs/slug/future-of-healthcare-automation-artemis',
+          'https://157.20.214.84:9292/api/v1/seo-blogs/slug/future-of-healthcare-automation-artemis',
           {
             method: 'GET',
             headers: {

@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import axios from "axios";
 import type { SeoWebsite } from "../types/SeoConfigTypes";
 
@@ -14,7 +20,9 @@ const SeoConfigContext = createContext<SeoConfigContextType>({
   loading: true,
 });
 
-export const SeoConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const SeoConfigProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [config, setConfig] = useState<SeoWebsite | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -26,12 +34,12 @@ export const SeoConfigProvider: React.FC<{ children: ReactNode }> = ({ children 
         if (currentDomain === "localhost") {
           currentDomain = "theartemis.ai";
         }
-        
+
         const response = await axios.get<SeoWebsite>(
-          `http://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
+          `https://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
           { headers: { "X-Tenant": "68b20dd0fb42964f2328b424" } }
         );
-        
+
         if (response.data) {
           setConfig(response.data);
         }
@@ -52,27 +60,8 @@ export const SeoConfigProvider: React.FC<{ children: ReactNode }> = ({ children 
   );
 };
 
-export const useSeoConfig = (): SeoConfigContextType => useContext(SeoConfigContext);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export const useSeoConfig = (): SeoConfigContextType =>
+  useContext(SeoConfigContext);
 
 // 'use client';
 
@@ -121,7 +110,7 @@ export const useSeoConfig = (): SeoConfigContextType => useContext(SeoConfigCont
 //         }
 
 //         const response = await axios.get<SeoWebsite>(
-//           `http://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
+//           `https://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
 //           { headers: { "X-Tenant": "68b20dd0fb42964f2328b424" } }
 //         );
 
