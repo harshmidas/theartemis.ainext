@@ -63,7 +63,7 @@ const NewsArticles = () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `http://157.20.214.84:9292/api/v1/seo-news/slug/${slug}`,
+        `/api/v1/seo-news/slug/${slug}`,
         {
           headers: {
             'accept': '*/*',
@@ -574,7 +574,7 @@ export default NewsArticles;
 //     try {
 //       setLoading(true);
 //       const response = await fetch(
-//         `http://157.20.214.84:9292/api/v1/seo-news/slug/${slug}`,
+//         `/api/v1/seo-news/slug/${slug}`,
 //         {
 //           headers: {
 //             'accept': '*/*',
@@ -968,7 +968,7 @@ export default NewsArticles;
 //     try {
 //       setLoading(true);
 //       const response = await fetch(
-//         `http://157.20.214.84:9292/api/v1/seo-news/slug/${slug}`,
+//         `/api/v1/seo-news/slug/${slug}`,
 //         {
 //           headers: {
 //             'accept': '*/*',
