@@ -94,7 +94,7 @@ export default function RootLayout({
 //     const domain =  'theartemis.ai';
 
 //     const response = await fetch(
-//       `https://157.20.214.84:9292/api/v1/seo-websites/domain/${domain}`,
+//       `http://157.20.214.84:9292/api/v1/seo-websites/domain/${domain}`,
 //       {
 //         headers: { "X-Tenant": "68b20dd0fb42964f2328b424" },
 //         next: { revalidate: 3600 } // Cache for 1 hour

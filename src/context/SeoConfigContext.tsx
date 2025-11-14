@@ -36,7 +36,7 @@ export const SeoConfigProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         const response = await axios.get<SeoWebsite>(
-          `https://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
+          `http://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
           { headers: { "X-Tenant": "68b20dd0fb42964f2328b424" } }
         );
 
@@ -110,7 +110,7 @@ export const useSeoConfig = (): SeoConfigContextType =>
 //         }
 
 //         const response = await axios.get<SeoWebsite>(
-//           `https://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
+//           `http://157.20.214.84:9292/api/v1/seo-websites/domain/${currentDomain}`,
 //           { headers: { "X-Tenant": "68b20dd0fb42964f2328b424" } }
 //         );
 
