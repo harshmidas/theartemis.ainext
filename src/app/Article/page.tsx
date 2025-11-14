@@ -63,7 +63,7 @@ const ArticlePage = () => {
         setError(null);
         
         console.log('🔍 Fetching articles from API...');
-        const response = await fetch('/api/api/v1/seo-articles', {
+        const response = await fetch('api/v1/seo-articles', {
           method: 'GET',
           headers: {
             'accept': '*/*',

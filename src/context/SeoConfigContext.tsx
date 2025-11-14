@@ -36,8 +36,8 @@ export const SeoConfigProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         const response = await axios.get<SeoWebsite>(
-          `/api/v1/seo-websites/domain/theartemis.ai`,
-          { headers: { "X-Tenant": "68b20dd0fb42964f2328b424" } }
+          `/api/v1/seo-websites/domain/${currentDomain}`,
+          { headers: { "X-Tenant": "68cc764fbfc57730593b4a32" } }
         );
 
         if (response.data) {

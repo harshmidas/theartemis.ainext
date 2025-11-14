@@ -105,7 +105,7 @@ const PressRelease: React.FC = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          '/api/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
+          '/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
           {
             method: 'GET',
             headers: {
