@@ -500,7 +500,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-// import './BlogPost.css';
+import './Blog.css';
 
 interface BlogPostData {
   id: string;

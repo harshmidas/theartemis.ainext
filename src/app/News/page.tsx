@@ -2,7 +2,7 @@
 // components/NewsArticle.tsx
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-// import './NewsArticle.css';
+import './News.css';
 
 // Type definitions (unchanged)
 interface SEOMeta {
