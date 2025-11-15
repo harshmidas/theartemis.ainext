@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import './Press.css';
+import styles from './PressRelease.module.css';
 
 interface PressReleaseData {
   id: string;
@@ -17,7 +17,7 @@ interface PressReleaseData {
   companyWebsite: string;
   contactInfo: {
     mediaContactName: string;
-    mediaContactEmail: string ;
+    mediaContactEmail: string;
     mediaContactPhone: string;
     prContactName: string;
     prContactEmail: string;
@@ -95,994 +95,731 @@ interface PressReleaseData {
 }
 
 const PressRelease: React.FC = () => {
-  const [pressRelease, setPressRelease] = useState<PressReleaseData | null>(null);
+  const [pressReleases, setPressReleases] = useState<PressReleaseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeMediaAsset, setActiveMediaAsset] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedRelease, setSelectedRelease] = useState<PressReleaseData | null>(null);
+  const [expandedReleases, setExpandedReleases] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const fetchPressRelease = async () => {
+    const fetchPressReleases = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          '/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
-          {
-            method: 'GET',
-            headers: {
-              'accept': '*/*',
-              'X-Tenant': '68b20dd0fb42964f2328b424'
-            }
+        console.log('🔍 Fetching press releases from API...');
+        
+        const response = await fetch('/api/v1/seo-press/', {
+          method: 'GET',
+          headers: {
+            'accept': '*/*',
+            'X-Tenant': '68b20dd0fb42964f2328b424'
           }
-        );
+        });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch press release: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        setPressRelease(data);
+        const data: PressReleaseData[] = await response.json();
+        console.log('✅ Press API Response received:', data);
+        console.log(`📊 Total press releases from API: ${data.length}`);
+        
+        // Filter only published releases
+        const publishedReleases = data.filter(release => release.published && release.status === 'PUBLISHED');
+        console.log(`🎯 Published press releases after filtering: ${publishedReleases.length}`);
+        setPressReleases(publishedReleases);
+        
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('❌ Error fetching press releases:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load press releases');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPressRelease();
+    fetchPressReleases();
   }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  // Handle release card click
+  const handleReleaseClick = (release: PressReleaseData) => {
+    setSelectedRelease(release);
+    
+    // Add to expanded releases set
+    setExpandedReleases(prev => {
+      const newSet = new Set(prev);
+      newSet.add(release.id);
+      return newSet;
+    });
+
+    // Scroll to the release detail section
+    setTimeout(() => {
+      const element = document.getElementById(`press-${release.slug}`);
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start'
+        });
+      }
+    }, 100);
+  };
+
+  // Toggle release expansion
+  const toggleReleaseExpansion = (releaseId: string) => {
+    setExpandedReleases(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(releaseId)) {
+        newSet.delete(releaseId);
+      } else {
+        newSet.add(releaseId);
+      }
+      return newSet;
     });
   };
 
-  const formatNumber = (num: number) => {
+  // Get unique categories for filter
+  const categories = ['All', ...new Set(pressReleases.map(release => release.category))];
+
+  // Filter releases based on search and category
+  const filteredReleases = pressReleases.filter(release => {
+    const matchesSearch = release.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         release.summary.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (release.tags && release.tags.some(tag => 
+                           tag.toLowerCase().includes(searchTerm.toLowerCase())
+                         ));
+    
+    const matchesCategory = selectedCategory === 'All' || release.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  const formatNumber = (num: number = 0) => {
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + 'k';
     }
     return num.toString();
   };
 
-  const handleShare = (platform: string) => {
-    const shareUrl = window.location.href;
-    const title = pressRelease?.title || '';
-    const text = pressRelease?.summary || '';
+  const handleShare = (release: PressReleaseData, platform: 'twitter' | 'linkedin' | 'facebook' | 'copy', e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = typeof window !== 'undefined' 
+      ? `${window.location.origin}/press/${release.slug}`
+      : '';
+    const title = release.title;
 
-    const shareConfig: { [key: string]: string } = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(shareUrl)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-      copy: shareUrl
+    const shareUrls = {
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      copy: url
     };
 
     if (platform === 'copy') {
-      navigator.clipboard.writeText(shareUrl);
+      navigator.clipboard.writeText(url);
       alert('Link copied to clipboard!');
     } else {
-      window.open(shareConfig[platform], '_blank', 'width=600,height=400');
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
   };
 
-  const handleDownload = () => {
-    // Simulate PDF download
-    alert('Press release PDF download started');
+  const handleBookmark = (releaseId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    alert(`Press release ${releaseId} bookmarked!`);
+  };
+
+  const handleDownload = (release: PressReleaseData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    alert(`Downloading press release: ${release.title}`);
+  };
+
+  const getPriorityColor = (priority: string = 'MEDIUM') => {
+    switch (priority.toUpperCase()) {
+      case 'HIGH': return '#ef4444';
+      case 'MEDIUM': return '#f59e0b';
+      case 'LOW': return '#10b981';
+      default: return '#6b7280';
+    }
+  };
+
+  // Function to render release content with basic HTML support
+  const renderReleaseContent = (content: string) => {
+    return { __html: content };
   };
 
   if (loading) {
     return (
-      <div className="press-loading">
-        <div className="loading-container">
-          <div className="loading-animation">
-            <div className="loading-spinner"></div>
-            <div className="loading-pulse"></div>
-          </div>
-          <div className="loading-content">
-            <h3>Loading Press Release</h3>
-            <p>Fetching the latest news from our newsroom...</p>
-          </div>
-        </div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p className={styles.loadingText}>Loading Press Releases from API...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="press-error">
-        <div className="error-container">
-          <div className="error-icon">📰</div>
-          <div className="error-content">
-            <h2>Unable to Load Press Release</h2>
-            <p>{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="retry-button"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!pressRelease) {
-    return (
-      <div className="press-not-found">
-        <div className="not-found-container">
-          <div className="not-found-icon">🔍</div>
-          <div className="not-found-content">
-            <h2>Press Release Not Found</h2>
-            <p>The requested press release could not be located in our archives.</p>
-          </div>
+      <div className={styles.errorContainer}>
+        <div className={styles.errorContent}>
+          <div className={styles.errorIcon}>⚠️</div>
+          <h1 className={styles.errorTitle}>Error Loading Press Releases</h1>
+          <p className={styles.errorMessage}>{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className={styles.primaryButton}
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="press-release">
-      {/* SEO Structured Data */}
-      {pressRelease.seoMeta?.structuredData && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(pressRelease.seoMeta.structuredData)
-          }}
-        />
-      )}
-
-      {/* Header Section */}
-      <header className="press-header">
-        <div className="header-container">
-          {/* Breadcrumb */}
-          <nav className="press-breadcrumb">
-            <a href="/" className="breadcrumb-link">Home</a>
-            <span className="breadcrumb-separator">/</span>
-            <a href="/press" className="breadcrumb-link">Press</a>
-            <span className="breadcrumb-separator">/</span>
-            <a 
-              href={`/press/category/${pressRelease.category.toLowerCase().replace(/\s+/g, '-')}`}
-              className="breadcrumb-link"
-            >
-              {pressRelease.category}
-            </a>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">Press Release</span>
+    <>
+      <div className={styles.container}>
+        {/* Header */}
+        <header className={styles.header}>
+          <nav className={styles.breadcrumb}>
+            <a href="/" className={styles.breadcrumbLink}>Home</a>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <span className={styles.breadcrumbCurrent}>Press Releases</span>
           </nav>
 
-          {/* Meta Information */}
-          <div className="press-meta-header">
-            <div className="category-badge">{pressRelease.category}</div>
-            {pressRelease.featured && (
-              <div className="featured-badge">
-                <span className="featured-star">⭐</span>
-                Featured
+          <div className={styles.headerContent}>
+            <h1 className={styles.title}>Press Room</h1>
+            <p className={styles.summary}>
+              Official press releases, company announcements, and media resources
+            </p>
+            
+            {/* Stats */}
+            <div className={styles.statsGrid}>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>{pressReleases.length}</span>
+                <span className={styles.statLabel}>Total Releases</span>
               </div>
-            )}
-            {pressRelease.metadata.priority === 'HIGH' && (
-              <div className="priority-badge urgent">
-                <span className="urgent-dot"></span>
-                URGENT
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>
+                  {pressReleases.filter(r => r.featured).length}
+                </span>
+                <span className={styles.statLabel}>Featured</span>
               </div>
-            )}
-          </div>
-
-          {/* Title & Subtitle */}
-          <div className="title-section">
-            <h1 className="press-title">{pressRelease.title}</h1>
-            <p className="press-subtitle">{pressRelease.subtitle}</p>
-          </div>
-
-          {/* Release Info */}
-          <div className="release-info">
-            <div className="info-grid">
-              <div className="info-item">
-                <div className="info-label">Release Date</div>
-                <div className="info-value">{formatDate(pressRelease.releaseDate)}</div>
-              </div>
-              <div className="info-item">
-                <div className="info-label">Location</div>
-                <div className="info-value">{pressRelease.location}</div>
-              </div>
-              <div className="info-item">
-                <div className="info-label">Status</div>
-                <div className={`status-badge status-${pressRelease.status.toLowerCase()}`}>
-                  {pressRelease.status}
-                </div>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>
+                  {categories.length - 1}
+                </span>
+                <span className={styles.statLabel}>Categories</span>
               </div>
             </div>
           </div>
+        </header>
 
-          {/* Stats */}
-          <div className="press-stats">
-            <div className="stat-item">
-              <div className="stat-icon">👁️</div>
-              <div className="stat-content">
-                <div className="stat-number">{formatNumber(pressRelease.viewCount)}</div>
-                <div className="stat-label">Views</div>
-              </div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-icon">📤</div>
-              <div className="stat-content">
-                <div className="stat-number">{formatNumber(pressRelease.shareCount)}</div>
-                <div className="stat-label">Shares</div>
-              </div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-icon">📥</div>
-              <div className="stat-content">
-                <div className="stat-number">{formatNumber(pressRelease.downloadCount)}</div>
-                <div className="stat-label">Downloads</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Featured Image */}
-      {pressRelease.featuredImage && (
-        <div className="featured-media">
-          <div className="image-container">
-            <img 
-              src={pressRelease.featuredImage} 
-              alt={pressRelease.featuredImageAlt}
-              className="featured-image"
-            />
-          </div>
-          {pressRelease.featuredImageAlt && (
-            <div className="image-caption">{pressRelease.featuredImageAlt}</div>
+        {/* API Status Info */}
+        <div className={styles.apiStatus}>
+          <strong>📡 API Status:</strong> Connected to{' '}
+          <code>/api/v1/seo-press</code>{' '}
+          | Showing <strong>{filteredReleases.length}</strong> of{' '}
+          <strong>{pressReleases.length}</strong> published releases
+          {selectedRelease && (
+            <span> | 📖 Viewing: <strong>{selectedRelease.title}</strong></span>
           )}
         </div>
-      )}
 
-      {/* Main Content */}
-      <div className="press-content-layout">
-        <div className="content-container">
-          
-          {/* Primary Content */}
-          <main className="primary-content">
-            
-            {/* Executive Summary */}
-            <section className="summary-section">
-              <div className="section-header">
-                <h2 className="section-title">Executive Summary</h2>
-                <div className="section-icon">📋</div>
-              </div>
-              <div className="summary-content">
-                <p className="summary-text">{pressRelease.summary}</p>
-              </div>
-            </section>
-
-            {/* Press Release Content */}
-            <section className="content-section">
-              <div className="section-header">
-                <h2 className="section-title">Press Release Details</h2>
-                <div className="section-icon">📄</div>
-              </div>
-              <article className="press-content">
-                <div 
-                  className="content-body"
-                  dangerouslySetInnerHTML={{ __html: pressRelease.content }}
-                />
-              </article>
-            </section>
-
-            {/* Media Assets */}
-            {pressRelease.mediaAssets && pressRelease.mediaAssets.length > 0 && (
-              <section className="media-section">
-                <div className="section-header">
-                  <h2 className="section-title">Media Assets</h2>
-                  <div className="section-icon">🖼️</div>
-                </div>
-                <div className="media-grid">
-                  {pressRelease.mediaAssets.map((asset, index) => (
-                    <div 
-                      key={index} 
-                      className={`media-item ${index === activeMediaAsset ? 'active' : ''}`}
-                      onClick={() => setActiveMediaAsset(index)}
-                    >
-                      <div className="media-image">
-                        <img src={asset} alt={`Media asset ${index + 1}`} />
-                        <div className="media-overlay">
-                          <div className="overlay-content">
-                            <span className="view-icon">👁️</span>
-                            <span>View</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="media-number">Asset #{index + 1}</div>
-                    </div>
-                  ))}
-                </div>
-              </section>
+        {/* Filters Section */}
+        <div className={styles.filtersSection}>
+          <div className={styles.searchBox}>
+            <div className={styles.searchIcon}>🔍</div>
+            <input
+              type="text"
+              placeholder="Search press releases, tags, or companies..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className={styles.clearSearch}
+              >
+                ✕
+              </button>
             )}
+          </div>
 
-            {/* Tags */}
-            {pressRelease.tags && pressRelease.tags.length > 0 && (
-              <section className="tags-section">
-                <div className="section-header">
-                  <h3 className="section-title">Related Topics</h3>
-                </div>
-                <div className="tags-container">
-                  {pressRelease.tags.map((tag, index) => (
-                    <span key={index} className="topic-tag">#{tag}</span>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Boilerplate */}
-            <section className="boilerplate-section">
-              <div className="section-header">
-                <h2 className="section-title">About {pressRelease.companyName}</h2>
-                <div className="section-icon">🏢</div>
-              </div>
-              <div className="boilerplate-content">
-                <p>{pressRelease.boilerplate}</p>
-              </div>
-            </section>
-
-          </main>
-
-          {/* Sidebar */}
-          <aside className="press-sidebar">
-            
-            {/* Company Information */}
-            <div className="sidebar-widget company-widget">
-              <div className="widget-header">
-                <h4 className="widget-title">Company Information</h4>
-                <div className="widget-icon">🏢</div>
-              </div>
-              <div className="company-content">
-                <div className="company-logo">
-                  <img 
-                    src={pressRelease.companyLogo} 
-                    alt={`${pressRelease.companyName} logo`}
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&h=100&fit=crop&auto=format';
-                    }}
-                  />
-                </div>
-                <div className="company-details">
-                  <div className="company-name">{pressRelease.companyName}</div>
-                  <a 
-                    href={pressRelease.companyWebsite} 
-                    className="company-website"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    {pressRelease.companyWebsite}
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Media Contacts */}
-            <div className="sidebar-widget contacts-widget">
-              <div className="widget-header">
-                <h4 className="widget-title">Media Contacts</h4>
-                <div className="widget-icon">📞</div>
-              </div>
-              <div className="contacts-list">
-                
-                {/* Media Relations */}
-                <div className="contact-group">
-                  <div className="contact-role">Media Relations</div>
-                  <div className="contact-name">{pressRelease.contactInfo.mediaContactName}</div>
-                  <div className="contact-details">
-                    <a href={`mailto:${pressRelease.contactInfo.mediaContactEmail}`} className="contact-link">
-                      📧 {pressRelease.contactInfo.mediaContactEmail}
-                    </a>
-                    <a href={`tel:${pressRelease.contactInfo.mediaContactPhone}`} className="contact-link">
-                      📞 {pressRelease.contactInfo.mediaContactPhone}
-                    </a>
-                  </div>
-                </div>
-
-                {/* PR Contact */}
-                <div className="contact-group">
-                  <div className="contact-role">PR Contact</div>
-                  <div className="contact-name">{pressRelease.contactInfo.prContactName}</div>
-                  <div className="contact-details">
-                    <a href={`mailto:${pressRelease.contactInfo.prContactEmail}`} className="contact-link">
-                      📧 {pressRelease.contactInfo.prContactEmail}
-                    </a>
-                    <a href={`tel:${pressRelease.contactInfo.prContactPhone}`} className="contact-link">
-                      📞 {pressRelease.contactInfo.prContactPhone}
-                    </a>
-                  </div>
-                </div>
-
-                {/* Additional Contacts */}
-                <div className="contact-group">
-                  <div className="contact-role">Additional Contacts</div>
-                  <div className="contact-details">
-                    <div className="contact-item">
-                      <strong>Media Relations:</strong> {pressRelease.contactInfo.additionalContacts.mediaRelations}
-                    </div>
-                    <div className="contact-item">
-                      <strong>Investor Relations:</strong> {pressRelease.contactInfo.additionalContacts.investorRelations}
-                    </div>
-                    <div className="contact-item">
-                      <strong>Customer Support:</strong> {pressRelease.contactInfo.additionalContacts.customerSupport}
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            {/* Distribution Information */}
-            <div className="sidebar-widget distribution-widget">
-              <div className="widget-header">
-                <h4 className="widget-title">Distribution</h4>
-                <div className="widget-icon">📡</div>
-              </div>
-              <div className="distribution-content">
-                <div className="distribution-item">
-                  <div className="dist-label">Status</div>
-                  <div className={`dist-value status-${pressRelease.status.toLowerCase()}`}>
-                    {pressRelease.status}
-                  </div>
-                </div>
-                <div className="distribution-item">
-                  <div className="dist-label">Priority</div>
-                  <div className="dist-value priority-high">{pressRelease.distributionConfig.customSettings.priority}</div>
-                </div>
-                <div className="distribution-item">
-                  <div className="dist-label">Embargo</div>
-                  <div className="dist-value">{pressRelease.distributionConfig.customSettings.pressEmbargo || 'None'}</div>
-                </div>
-              </div>
-
-              {/* Distribution Channels */}
-              <div className="channels-section">
-                <h5 className="channels-title">Distribution Channels</h5>
-                <div className="channels-list">
-                  {pressRelease.distributionConfig.distributionChannels.map((channel, index) => (
-                    <div key={index} className="channel-item">
-                      <span className="channel-bullet"></span>
-                      {channel}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Target Outlets */}
-              <div className="outlets-section">
-                <h5 className="outlets-title">Target Media Outlets</h5>
-                <div className="outlets-list">
-                  {pressRelease.distributionConfig.targetMediaOutlets.map((outlet, index) => (
-                    <div key={index} className="outlet-item">
-                      <span className="outlet-bullet"></span>
-                      {outlet}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Distribution History */}
-            {pressRelease.distributionHistory && pressRelease.distributionHistory.length > 0 && (
-              <div className="sidebar-widget history-widget">
-                <div className="widget-header">
-                  <h4 className="widget-title">Distribution History</h4>
-                  <div className="widget-icon">📊</div>
-                </div>
-                <div className="history-list">
-                  {pressRelease.distributionHistory.map((distribution, index) => (
-                    <div key={index} className="history-item">
-                      <div className="history-header">
-                        <div className="history-channel">{distribution.channel}</div>
-                        <div className={`history-status status-${distribution.status.toLowerCase()}`}>
-                          {distribution.status}
-                        </div>
-                      </div>
-                      <div className="history-date">{formatDate(distribution.distributedAt)}</div>
-                      {distribution.metadata.views && (
-                        <div className="history-metrics">
-                          <div className="metric">
-                            <span className="metric-value">{formatNumber(distribution.metadata.views)}</span>
-                            <span className="metric-label">Views</span>
-                          </div>
-                          <div className="metric">
-                            <span className="metric-value">{formatNumber(distribution.metadata.shares || 0)}</span>
-                            <span className="metric-label">Shares</span>
-                          </div>
-                          {distribution.metadata.engagement && (
-                            <div className="metric">
-                              <span className="metric-value">{distribution.metadata.engagement}%</span>
-                              <span className="metric-label">Engagement</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-          </aside>
-        </div>
-      </div>
-
-      {/* Action Footer */}
-      <footer className="press-actions">
-        <div className="actions-container">
-          <div className="actions-content">
-            <div className="actions-info">
-              <h4>Press Release Actions</h4>
-              <p>Download, share, or print this press release</p>
-            </div>
-            <div className="action-buttons">
-              <button 
-                className="action-button primary"
-                onClick={handleDownload}
+          <div className={styles.categoryFilters}>
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`${styles.categoryFilter} ${
+                  selectedCategory === category ? styles.active : ''
+                }`}
               >
-                <span className="button-icon">📥</span>
-                <span className="button-text">Download PDF</span>
+                {category}
               </button>
-              <button 
-                className="action-button secondary"
-                onClick={() => window.print()}
-              >
-                <span className="button-icon">🖨️</span>
-                <span className="button-text">Print Release</span>
-              </button>
-              <button 
-                className="action-button secondary"
-                onClick={() => handleShare('copy')}
-              >
-                <span className="button-icon">🔗</span>
-                <span className="button-text">Copy Link</span>
-              </button>
-              <button 
-                className="action-button secondary"
-                onClick={() => handleShare('twitter')}
-              >
-                <span className="button-icon">🐦</span>
-                <span className="button-text">Share on Twitter</span>
-              </button>
-            </div>
+            ))}
           </div>
         </div>
-      </footer>
 
-    </div>
+        {/* Press Releases Grid */}
+        <div className={styles.releasesGrid}>
+          {filteredReleases.map((release) => (
+            <article 
+              key={release.id} 
+              className={`${styles.releaseCard} ${release.featured ? styles.featured : ''} ${
+                selectedRelease?.id === release.id ? styles.selected : ''
+              }`}
+              onClick={() => handleReleaseClick(release)}
+            >
+              {/* Featured Badge */}
+              {release.featured && (
+                <div className={styles.featuredRibbon}>
+                  <span>⭐ Featured</span>
+                </div>
+              )}
+
+              {/* Priority Badge */}
+              {release.metadata.priority && release.metadata.priority !== 'MEDIUM' && (
+                <div 
+                  className={styles.priorityBadge}
+                  style={{ backgroundColor: getPriorityColor(release.metadata.priority) }}
+                >
+                  {release.metadata.priority}
+                </div>
+              )}
+
+              {/* Image */}
+              <div className={styles.cardImageContainer}>
+                <img 
+                  src={release.featuredImage || '/api/placeholder/400/200'} 
+                  alt={release.featuredImageAlt || release.title}
+                  className={styles.cardImage}
+                  onError={(e) => {
+                    e.currentTarget.src = '/api/placeholder/400/200';
+                  }}
+                />
+                <div className={styles.imageOverlay} />
+                
+                {/* Category Badge */}
+                <div className={styles.cardBadges}>
+                  <span className={styles.categoryBadge}>
+                    {release.category}
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className={styles.cardContent}>
+                <div className={styles.cardMeta}>
+                  <span className={styles.category}>{release.category}</span>
+                  <span className={styles.releaseDate}>
+                    {formatDate(release.releaseDate)}
+                  </span>
+                  <span className={styles.location}>
+                    {release.location}
+                  </span>
+                </div>
+
+                <h2 className={styles.cardTitle}>
+                  {release.title}
+                </h2>
+
+                <p className={styles.cardSubtitle}>
+                  {release.subtitle}
+                </p>
+
+                <p className={styles.cardSummary}>
+                  {release.summary || 'No summary available'}
+                </p>
+
+                {/* Company Info */}
+                <div className={styles.cardCompany}>
+                  <div className={styles.companyInfo}>
+                    {release.companyLogo && (
+                      <img 
+                        src={release.companyLogo} 
+                        alt={release.companyName}
+                        className={styles.companyLogo}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div className={styles.companyDetails}>
+                      <span className={styles.companyName}>
+                        {release.companyName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {release.tags && release.tags.length > 0 && (
+                  <div className={styles.cardTags}>
+                    {release.tags.slice(0, 4).map((tag, index) => (
+                      <span key={index} className={styles.tag}>
+                        #{tag}
+                      </span>
+                    ))}
+                    {release.tags.length > 4 && (
+                      <span className={styles.moreTags}>
+                        +{release.tags.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Stats and Actions */}
+                <div className={styles.cardFooter}>
+                  <div className={styles.cardStats}>
+                    <div className={styles.stat}>
+                      <span className={styles.statIcon}>👁️</span>
+                      <span>{formatNumber(release.viewCount)}</span>
+                    </div>
+                    <div className={styles.stat}>
+                      <span className={styles.statIcon}>📥</span>
+                      <span>{formatNumber(release.downloadCount)}</span>
+                    </div>
+                    <div className={styles.stat}>
+                      <span className={styles.statIcon}>📤</span>
+                      <span>{formatNumber(release.shareCount)}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.cardActions}>
+                    <button 
+                      onClick={(e) => handleDownload(release, e)}
+                      className={styles.actionButton}
+                      title="Download PDF"
+                    >
+                      📥
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(release, 'twitter', e)}
+                      className={styles.actionButton}
+                      title="Share on Twitter"
+                    >
+                      🐦
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(release, 'linkedin', e)}
+                      className={styles.actionButton}
+                      title="Share on LinkedIn"
+                    >
+                      💼
+                    </button>
+                    <button 
+                      onClick={(e) => handleBookmark(release.id, e)}
+                      className={styles.actionButton}
+                      title="Bookmark release"
+                    >
+                      📑
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {/* Press Release Details Sections */}
+        <div className={styles.releaseDetailsContainer}>
+          {filteredReleases.map((release) => (
+            <section 
+              key={release.id}
+              id={`press-${release.slug}`}
+              className={`${styles.releaseDetail} ${
+                expandedReleases.has(release.id) ? styles.expanded : ''
+              }`}
+            >
+              <div className={styles.releaseDetailHeader}>
+                <div className={styles.releaseDetailMeta}>
+                  <span className={styles.releaseDetailCategory}>{release.category}</span>
+                  <span className={styles.releaseDetailDate}>
+                    {formatDate(release.releaseDate)}
+                  </span>
+                  <span className={styles.releaseDetailLocation}>
+                    {release.location}
+                  </span>
+                  {release.metadata.priority && release.metadata.priority !== 'MEDIUM' && (
+                    <span 
+                      className={styles.priorityTag}
+                      style={{ backgroundColor: getPriorityColor(release.metadata.priority) }}
+                    >
+                      {release.metadata.priority} PRIORITY
+                    </span>
+                  )}
+                </div>
+
+                <h1 className={styles.releaseDetailTitle}>
+                  {release.title}
+                </h1>
+
+                <p className={styles.releaseDetailSubtitle}>
+                  {release.subtitle}
+                </p>
+
+                <p className={styles.releaseDetailSummary}>
+                  {release.summary}
+                </p>
+
+                {/* Company Info */}
+                <div className={styles.releaseDetailCompany}>
+                  <div className={styles.companyHeader}>
+                    {release.companyLogo && (
+                      <img 
+                        src={release.companyLogo} 
+                        alt={release.companyName}
+                        className={styles.companyDetailLogo}
+                      />
+                    )}
+                    <div className={styles.companyDetailInfo}>
+                      <h3 className={styles.companyDetailName}>{release.companyName}</h3>
+                      {release.companyWebsite && (
+                        <a 
+                          href={release.companyWebsite} 
+                          className={styles.companyWebsite}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {release.companyWebsite}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {release.featuredImage && (
+                  <div className={styles.releaseDetailImageContainer}>
+                    <img 
+                      src={release.featuredImage} 
+                      alt={release.featuredImageAlt || release.title}
+                      className={styles.releaseDetailImage}
+                    />
+                    {release.featuredImageAlt && (
+                      <div className={styles.imageCaption}>{release.featuredImageAlt}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.releaseDetailContent}>
+                <div 
+                  className={styles.releaseContent}
+                  dangerouslySetInnerHTML={renderReleaseContent(release.content)}
+                />
+                
+                {/* Media Assets */}
+                {release.mediaAssets && release.mediaAssets.length > 0 && (
+                  <div className={styles.mediaAssetsSection}>
+                    <h4>Media Assets</h4>
+                    <div className={styles.mediaAssetsGrid}>
+                      {release.mediaAssets.map((asset, index) => (
+                        <div key={index} className={styles.mediaAssetItem}>
+                          <img src={asset} alt={`Media asset ${index + 1}`} />
+                          <div className={styles.mediaAssetInfo}>
+                            <span className={styles.assetNumber}>Asset #{index + 1}</span>
+                            <button className={styles.downloadAssetButton}>
+                              Download
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact Information */}
+                <div className={styles.contactSection}>
+                  <h4>Media Contacts</h4>
+                  <div className={styles.contactGrid}>
+                    <div className={styles.contactGroup}>
+                      <h5>Media Relations</h5>
+                      <p><strong>{release.contactInfo.mediaContactName}</strong></p>
+                      <p>📧 {release.contactInfo.mediaContactEmail}</p>
+                      <p>📞 {release.contactInfo.mediaContactPhone}</p>
+                    </div>
+                    <div className={styles.contactGroup}>
+                      <h5>PR Contact</h5>
+                      <p><strong>{release.contactInfo.prContactName}</strong></p>
+                      <p>📧 {release.contactInfo.prContactEmail}</p>
+                      <p>📞 {release.contactInfo.prContactPhone}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Distribution Information */}
+                <div className={styles.distributionSection}>
+                  <h4>Distribution Information</h4>
+                  <div className={styles.distributionInfo}>
+                    <div className={styles.distributionItem}>
+                      <strong>Status:</strong> {release.status}
+                    </div>
+                    <div className={styles.distributionItem}>
+                      <strong>Priority:</strong> {release.distributionConfig.customSettings.priority}
+                    </div>
+                    <div className={styles.distributionItem}>
+                      <strong>Embargo:</strong> {release.distributionConfig.customSettings.pressEmbargo || 'None'}
+                    </div>
+                  </div>
+                  
+                  {release.distributionConfig.distributionChannels.length > 0 && (
+                    <div className={styles.channelsSection}>
+                      <h5>Distribution Channels</h5>
+                      <div className={styles.channelsList}>
+                        {release.distributionConfig.distributionChannels.map((channel, index) => (
+                          <span key={index} className={styles.channelTag}>{channel}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Boilerplate */}
+                <div className={styles.boilerplateSection}>
+                  <h4>About {release.companyName}</h4>
+                  <p className={styles.boilerplateText}>{release.boilerplate}</p>
+                </div>
+
+                {/* Tags */}
+                {release.tags && release.tags.length > 0 && (
+                  <div className={styles.releaseDetailTags}>
+                    <h4>Related Topics</h4>
+                    <div className={styles.releaseTagsList}>
+                      {release.tags.map((tag, index) => (
+                        <span key={index} className={styles.releaseTag}>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Release Actions */}
+                <div className={styles.releaseDetailActions}>
+                  <button 
+                    onClick={() => toggleReleaseExpansion(release.id)}
+                    className={styles.collapseButton}
+                  >
+                    {expandedReleases.has(release.id) ? '▲ Collapse' : '▼ Expand'}
+                  </button>
+                  <div className={styles.releaseSocialActions}>
+                    <span>Share: </span>
+                    <button 
+                      onClick={(e) => handleShare(release, 'twitter', e)}
+                      className={styles.socialButton}
+                    >
+                      Twitter
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(release, 'linkedin', e)}
+                      className={styles.socialButton}
+                    >
+                      LinkedIn
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(release, 'facebook', e)}
+                      className={styles.socialButton}
+                    >
+                      Facebook
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(release, 'copy', e)}
+                      className={styles.socialButton}
+                    >
+                      Copy Link
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredReleases.length === 0 && (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>📰</div>
+            <h3 className={styles.emptyTitle}>No press releases found</h3>
+            <p className={styles.emptyMessage}>
+              {searchTerm || selectedCategory !== 'All' 
+                ? 'Try adjusting your search or filter criteria'
+                : pressReleases.length === 0 
+                  ? 'No published press releases available from the API'
+                  : 'No releases match your criteria'
+              }
+            </p>
+            {(searchTerm || selectedCategory !== 'All') && (
+              <button 
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('All');
+                }}
+                className={styles.primaryButton}
+              >
+                Clear Filters
+              </button>
+            )}
+            {pressReleases.length === 0 && (
+              <button 
+                onClick={() => window.location.reload()}
+                className={styles.primaryButton}
+              >
+                Refresh Releases
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Footer */}
+        <footer className={styles.footer}>
+          <div className={styles.footerContent}>
+            <div className={styles.footerInfo}>
+              <h3 className={styles.footerTitle}>Press Room</h3>
+              <p className={styles.footerDescription}>
+                Official source for company news, announcements, and media resources.
+              </p>
+            </div>
+            <div className={styles.footerStats}>
+              <div className={styles.footerStat}>
+                <span className={styles.footerStatNumber}>{pressReleases.length}</span>
+                <span className={styles.footerStatLabel}>Releases Published</span>
+              </div>
+              <div className={styles.footerStat}>
+                <span className={styles.footerStatNumber}>
+                  {pressReleases.reduce((acc, release) => acc + (release.viewCount || 0), 0)}
+                </span>
+                <span className={styles.footerStatLabel}>Total Views</span>
+              </div>
+              <div className={styles.footerStat}>
+                <span className={styles.footerStatNumber}>
+                  {pressReleases.filter(r => r.featured).length}
+                </span>
+                <span className={styles.footerStatLabel}>Featured</span>
+              </div>
+            </div>
+          </div>
+          <div className={styles.footerBottom}>
+            <p className={styles.footerText}>
+              © {new Date().getFullYear()} Press Room. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 };
 
 export default PressRelease;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// "use client";
-// import React, { useState, useEffect } from 'react';
-// // import './PressRelease.css';
-
-// interface PressReleaseData {
-//   id: string;
-//   title: string;
-//   slug: string;
-//   content: string;
-//   subtitle: string;
-//   summary: string;
-//   featuredImage: string;
-//   featuredImageAlt: string;
-//   mediaAssets: string[];
-//   companyName: string;
-//   companyLogo: string;
-//   companyWebsite: string;
-//   contactInfo: {
-//     mediaContactName: string;
-//     mediaContactEmail: string ;
-//     mediaContactPhone: string;
-//     prContactName: string;
-//     prContactEmail: string;
-//     prContactPhone: string;
-//     additionalContacts: {
-//       mediaRelations: string;
-//       investorRelations: string;
-//       customerSupport: string;
-//     };
-//   };
-//   releaseDate: string;
-//   location: string;
-//   boilerplate: string;
-//   category: string;
-//   tags: string[];
-//   featured: boolean;
-//   published: boolean;
-//   publishedAt: string;
-//   distributionConfig: {
-//     autoDistribute: boolean;
-//     distributionChannels: string[];
-//     targetMediaOutlets: string[];
-//     scheduledDistributionTime: string;
-//     customSettings: {
-//       pressEmbargo: string;
-//       contactFollowUp: string;
-//       priority: string;
-//     };
-//   };
-//   distributionHistory: Array<{
-//     distributedAt: string;
-//     channel: string;
-//     status: string;
-//     responseMessage: string;
-//     metadata: {
-//       distributionId?: string;
-//       views?: number;
-//       shares?: number;
-//       engagement?: number;
-//       postId?: string;
-//     };
-//   }>;
-//   seoMeta: {
-//     metaTitle: string;
-//     metaDescription: string;
-//     metaKeywords: string[];
-//     canonicalUrl: string;
-//     ogTitle: string;
-//     ogDescription: string;
-//     ogImage: string;
-//     ogType: string;
-//     noIndex: boolean;
-//     structuredData: {
-//       '@type': string;
-//       headline: string;
-//       datePublished: string;
-//       publisher: string;
-//       author: string;
-//     };
-//   };
-//   viewCount: number;
-//   downloadCount: number;
-//   shareCount: number;
-//   relatedPressIds: string[];
-//   status: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   createdBy: string;
-//   updatedBy: string;
-//   metadata: {
-//     internalNotes: string;
-//     region: string;
-//     priority: string;
-//   };
-// }
-
-// const PressRelease: React.FC = () => {
-//   const [pressRelease, setPressRelease] = useState<PressReleaseData | null>(null);
-//   const [loading, setLoading] = useState<boolean>(true);
-//   const [error, setError] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     const fetchPressRelease = async () => {
-//       try {
-//         setLoading(true);
-//         const response = await fetch(
-//           '/api/api/v1/seo-press/slug/artemis-ai-staffing-automation-suite',
-//           {
-//             method: 'GET',
-//             headers: {
-//               'accept': '*/*',
-//               'X-Tenant': '68b20dd0fb42964f2328b424'
-//             }
-//           }
-//         );
-
-//         if (!response.ok) {
-//           throw new Error(`Failed to fetch press release: ${response.status}`);
-//         }
-
-//         const data = await response.json();
-//         setPressRelease(data);
-//       } catch (err) {
-//         setError(err instanceof Error ? err.message : 'An error occurred');
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchPressRelease();
-//   }, []);
-
-//   const formatDate = (dateString: string) => {
-//     return new Date(dateString).toLocaleDateString('en-US', {
-//       year: 'numeric',
-//       month: 'long',
-//       day: 'numeric',
-//       hour: '2-digit',
-//       minute: '2-digit'
-//     });
-//   };
-
-//   const formatNumber = (num: number) => {
-//     return num.toLocaleString();
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="press-release-loading">
-//         <div className="loading-spinner"></div>
-//         <p>Loading press release...</p>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="press-release-error">
-//         <h2>Error Loading Press Release</h2>
-//         <p>{error}</p>
-//         <button onClick={() => window.location.reload()}>Retry</button>
-//       </div>
-//     );
-//   }
-
-//   if (!pressRelease) {
-//     return (
-//       <div className="press-release-error">
-//         <h2>No Press Release Found</h2>
-//         <p>The requested press release could not be loaded.</p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="press-release-container">
-//       {/* Header Section */}
-//       <header className="press-release-header">
-//         <div className="press-release-meta">
-//           <span className="press-category">{pressRelease.category}</span>
-//           <span className="press-date">{formatDate(pressRelease.releaseDate)}</span>
-//           <span className="press-location">{pressRelease.location}</span>
-//         </div>
-        
-//         <h1 className="press-release-title">{pressRelease.title}</h1>
-//         <h2 className="press-release-subtitle">{pressRelease.subtitle}</h2>
-        
-//         <div className="press-release-stats">
-//           <div className="stat-item">
-//             <span className="stat-number">{formatNumber(pressRelease.viewCount)}</span>
-//             <span className="stat-label">Views</span>
-//           </div>
-//           <div className="stat-item">
-//             <span className="stat-number">{formatNumber(pressRelease.shareCount)}</span>
-//             <span className="stat-label">Shares</span>
-//           </div>
-//           <div className="stat-item">
-//             <span className="stat-number">{formatNumber(pressRelease.downloadCount)}</span>
-//             <span className="stat-label">Downloads</span>
-//           </div>
-//         </div>
-//       </header>
-
-//       {/* Featured Image */}
-//       {pressRelease.featuredImage && (
-//         <div className="featured-image-container">
-//           <img 
-//             src={pressRelease.featuredImage} 
-//             alt={pressRelease.featuredImageAlt}
-//             className="featured-image"
-//           />
-//         </div>
-//       )}
-
-//       {/* Main Content */}
-//       <main className="press-release-content">
-//         <div className="content-grid">
-//           {/* Article Content */}
-//           <article className="article-content">
-//             <div className="content-section">
-//               <h3>Executive Summary</h3>
-//               <p className="summary-text">{pressRelease.summary}</p>
-//             </div>
-
-//             <div className="content-section">
-//               <h3>Press Release Details</h3>
-//               <div className="content-text" dangerouslySetInnerHTML={{ __html: pressRelease.content.replace(/\n/g, '<br/>') }} />
-//             </div>
-
-//             {/* Media Assets */}
-//             {pressRelease.mediaAssets && pressRelease.mediaAssets.length > 0 && (
-//               <div className="content-section">
-//                 <h3>Media Assets</h3>
-//                 <div className="media-assets-grid">
-//                   {pressRelease.mediaAssets.map((asset, index) => (
-//                     <div key={index} className="media-asset">
-//                       <img src={asset} alt={`Media asset ${index + 1}`} />
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-//             )}
-
-//             {/* Tags */}
-//             {pressRelease.tags && pressRelease.tags.length > 0 && (
-//               <div className="content-section">
-//                 <div className="tags-container">
-//                   {pressRelease.tags.map((tag, index) => (
-//                     <span key={index} className="tag">{tag}</span>
-//                   ))}
-//                 </div>
-//               </div>
-//             )}
-
-//             {/* Boilerplate */}
-//             <div className="content-section boilerplate">
-//               <h3>About {pressRelease.companyName}</h3>
-//               <p>{pressRelease.boilerplate}</p>
-//             </div>
-//           </article>
-
-//           {/* Sidebar */}
-//           <aside className="press-sidebar">
-//             {/* Company Info */}
-//             <div className="sidebar-section company-info">
-//               <h4>Company Information</h4>
-//               <div className="company-logo">
-//                 <img src={pressRelease.companyLogo} alt={`${pressRelease.companyName} logo`} />
-//               </div>
-//               <p><strong>{pressRelease.companyName}</strong></p>
-//               <p><a href={pressRelease.companyWebsite} target="_blank" rel="noopener noreferrer">
-//                 {pressRelease.companyWebsite}
-//               </a></p>
-//             </div>
-
-//             {/* Contact Information */}
-//             <div className="sidebar-section contact-info">
-//               <h4>Media Contacts</h4>
-              
-//               <div className="contact-group">
-//                 <h5>Media Relations</h5>
-//                 <p><strong>{pressRelease.contactInfo.mediaContactName}</strong></p>
-//                 <p>📧 {pressRelease.contactInfo.mediaContactEmail}</p>
-//                 <p>📞 {pressRelease.contactInfo.mediaContactPhone}</p>
-//               </div>
-
-//               <div className="contact-group">
-//                 <h5>PR Contact</h5>
-//                 <p><strong>{pressRelease.contactInfo.prContactName}</strong></p>
-//                 <p>📧 {pressRelease.contactInfo.prContactEmail}</p>
-//                 <p>📞 {pressRelease.contactInfo.prContactPhone}</p>
-//               </div>
-
-//               <div className="contact-group">
-//                 <h5>Additional Contacts</h5>
-//                 <p><strong>Media Relations:</strong> {pressRelease.contactInfo.additionalContacts.mediaRelations}</p>
-//                 <p><strong>Investor Relations:</strong> {pressRelease.contactInfo.additionalContacts.investorRelations}</p>
-//                 <p><strong>Customer Support:</strong> {pressRelease.contactInfo.additionalContacts.customerSupport}</p>
-//               </div>
-//             </div>
-
-//             {/* Distribution Info */}
-//             <div className="sidebar-section distribution-info">
-//               <h4>Distribution</h4>
-//               <p><strong>Status:</strong> <span className={`status-${pressRelease.status.toLowerCase()}`}>{pressRelease.status}</span></p>
-//               <p><strong>Priority:</strong> {pressRelease.distributionConfig.customSettings.priority}</p>
-              
-//               <div className="distribution-channels">
-//                 <h5>Channels</h5>
-//                 <ul>
-//                   {pressRelease.distributionConfig.distributionChannels.map((channel, index) => (
-//                     <li key={index}>{channel}</li>
-//                   ))}
-//                 </ul>
-//               </div>
-
-//               <div className="target-outlets">
-//                 <h5>Target Outlets</h5>
-//                 <ul>
-//                   {pressRelease.distributionConfig.targetMediaOutlets.map((outlet, index) => (
-//                     <li key={index}>{outlet}</li>
-//                   ))}
-//                 </ul>
-//               </div>
-//             </div>
-
-//             {/* Distribution History */}
-//             {pressRelease.distributionHistory && pressRelease.distributionHistory.length > 0 && (
-//               <div className="sidebar-section distribution-history">
-//                 <h4>Distribution History</h4>
-//                 {pressRelease.distributionHistory.map((distribution, index) => (
-//                   <div key={index} className="distribution-item">
-//                     <p><strong>{distribution.channel}</strong></p>
-//                     <p className={`status-${distribution.status.toLowerCase()}`}>{distribution.status}</p>
-//                     <p className="distribution-date">{formatDate(distribution.distributedAt)}</p>
-//                     {distribution.metadata.views && (
-//                       <p className="distribution-metrics">
-//                         Views: {formatNumber(distribution.metadata.views)} | 
-//                         Shares: {formatNumber(distribution.metadata.shares || 0)}
-//                       </p>
-//                     )}
-//                   </div>
-//                 ))}
-//               </div>
-//             )}
-//           </aside>
-//         </div>
-//       </main>
-
-//       {/* Action Buttons */}
-//       <footer className="press-release-actions">
-//         <div className="action-buttons">
-//           <button className="btn btn-primary" onClick={() => window.print()}>
-//             📄 Print Release
-//           </button>
-//           <button className="btn btn-secondary" onClick={() => {
-//             navigator.clipboard.writeText(window.location.href);
-//             alert('Link copied to clipboard!');
-//           }}>
-//             🔗 Copy Link
-//           </button>
-//           <button className="btn btn-secondary" onClick={() => {
-//             const text = `${pressRelease.title}\n\n${pressRelease.summary}\n\nRead more: ${window.location.href}`;
-//             navigator.share?.({ title: pressRelease.title, text, url: window.location.href })
-//               .catch(() => navigator.clipboard.writeText(text));
-//           }}>
-//             📤 Share
-//           </button>
-//         </div>
-//       </footer>
-//     </div>
-//   );
-// };
-
-// export default PressRelease;

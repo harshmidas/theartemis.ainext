@@ -1,506 +1,8 @@
-// "use client";
-
-// import React, { useState, useEffect } from 'react';
-// // import './BlogPost.css';
-
-// interface BlogPostData {
-//   id: string;
-//   title: string;
-//   slug: string;
-//   content: string;
-//   excerpt: string;
-//   featuredImage: string;
-//   featuredImageAlt: string;
-//   author: string;
-//   authorBio: string;
-//   authorAvatar: string;
-//   category: string;
-//   tags: string[];
-//   featured: boolean;
-//   published: boolean;
-//   publishedAt: string;
-//   scheduledFor: string | null;
-//   seoMeta: {
-//     metaTitle: string;
-//     metaDescription: string;
-//     metaKeywords: string[];
-//     canonicalUrl: string;
-//     ogTitle: string;
-//     ogDescription: string;
-//     ogImage: string;
-//     twitterCard: string;
-//     twitterTitle: string;
-//     twitterDescription: string;
-//     twitterImage: string;
-//     structuredData: {
-//       type: string;
-//       publisher: string;
-//       author: string;
-//       section: string;
-//     };
-//     noIndex: boolean;
-//     noFollow: boolean;
-//   };
-//   viewCount: number;
-//   shareCount: number;
-//   commentCount: number;
-//   readingTimeMinutes: number;
-//   relatedBlogIds: string[];
-//   status: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   createdBy: string;
-//   updatedBy: string;
-//   metadata: {
-//     series: string;
-//     readTimeCategory: string;
-//     relatedCompanies: string[];
-//     language: string;
-//     geoTarget: string;
-//   };
-// }
-
-// const BlogPost: React.FC = () => {
-//   const [blogPost, setBlogPost] = useState<BlogPostData | null>(null);
-//   const [loading, setLoading] = useState<boolean>(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([]);
-
-//   useEffect(() => {
-//     const fetchBlogPost = async () => {
-//       try {
-//         setLoading(true);
-//         const response = await fetch(
-//           '/api/api/v1/seo-blogs/slug/future-of-healthcare-automation-artemis',
-//           {
-//             method: 'GET',
-//             headers: {
-//               'accept': '*/*',
-//               'X-Tenant': '68b20dd0fb42964f2328b424'
-//             }
-//           }
-//         );
-
-//         if (!response.ok) {
-//           throw new Error(`Failed to fetch blog post: ${response.status}`);
-//         }
-
-//         const data = await response.json();
-//         setBlogPost(data);
-        
-//         // In a real app, you would fetch related posts by their IDs
-//         // For now, we'll simulate this with empty array
-//         setRelatedPosts([]);
-//       } catch (err) {
-//         setError(err instanceof Error ? err.message : 'An error occurred');
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchBlogPost();
-//   }, []);
-
-//   const formatDate = (dateString: string) => {
-//     return new Date(dateString).toLocaleDateString('en-US', {
-//       year: 'numeric',
-//       month: 'long',
-//       day: 'numeric'
-//     });
-//   };
-
-//   const formatNumber = (num: number) => {
-//     return num.toLocaleString();
-//   };
-
-//   // const estimateReadingTime = (content: string) => {
-//   //   const wordsPerMinute = 200;
-//   //   const words = content.split(/\s+/).length;
-//   //   return Math.ceil(words / wordsPerMinute);
-//   // };
-
-//   if (loading) {
-//     return (
-//       <div className="blog-post-loading">
-//         <div className="loading-spinner"></div>
-//         <p>Loading blog post...</p>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="blog-post-error">
-//         <h2>Error Loading Blog Post</h2>
-//         <p>{error}</p>
-//         <button onClick={() => window.location.reload()}>Retry</button>
-//       </div>
-//     );
-//   }
-
-//   if (!blogPost) {
-//     return (
-//       <div className="blog-post-error">
-//         <h2>No Blog Post Found</h2>
-//         <p>The requested blog post could not be loaded.</p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="blog-post-container">
-//       {/* Article Header */}
-//       <header className="blog-post-header">
-//         <div className="blog-breadcrumb">
-//           <a href="/blog">Blog</a>
-//           <span className="breadcrumb-separator">/</span>
-//           <a href={`/blog/category/${blogPost.category.toLowerCase().replace(/\s+/g, '-')}`}>
-//             {blogPost.category}
-//           </a>
-//           <span className="breadcrumb-separator">/</span>
-//           <span>{blogPost.title}</span>
-//         </div>
-
-//         <div className="blog-meta-header">
-//           <span className="blog-category">{blogPost.category}</span>
-//           {blogPost.featured && (
-//             <span className="featured-badge">Featured</span>
-//           )}
-//         </div>
-
-//         <h1 className="blog-post-title">{blogPost.title}</h1>
-//         <p className="blog-post-excerpt">{blogPost.excerpt}</p>
-
-//         <div className="blog-post-meta">
-//           <div className="author-info">
-//             <img 
-//               src={blogPost.authorAvatar} 
-//               alt={blogPost.author}
-//               className="author-avatar"
-//               onError={(e) => {
-//                 e.currentTarget.src = 'https://via.placeholder.com/60x60/667eea/ffffff?text=AU';
-//               }}
-//             />
-//             <div className="author-details">
-//               <span className="author-name">{blogPost.author}</span>
-//               <span className="publish-date">
-//                 Published on {formatDate(blogPost.publishedAt)}
-//               </span>
-//             </div>
-//           </div>
-
-//           <div className="post-stats">
-//             <div className="stat">
-//               <span className="stat-icon">👁️</span>
-//               <span>{formatNumber(blogPost.viewCount)} views</span>
-//             </div>
-//             <div className="stat">
-//               <span className="stat-icon">⏱️</span>
-//               <span>{blogPost.readingTimeMinutes} min read</span>
-//             </div>
-//             <div className="stat">
-//               <span className="stat-icon">💬</span>
-//               <span>{formatNumber(blogPost.commentCount)} comments</span>
-//             </div>
-//             <div className="stat">
-//               <span className="stat-icon">📤</span>
-//               <span>{formatNumber(blogPost.shareCount)} shares</span>
-//             </div>
-//           </div>
-//         </div>
-//       </header>
-
-//       {/* Featured Image */}
-//       {blogPost.featuredImage && (
-//         <div className="featured-image-container">
-//           <img 
-//             src={blogPost.featuredImage} 
-//             alt={blogPost.featuredImageAlt}
-//             className="blog-featured-image"
-//           />
-//           {blogPost.featuredImageAlt && (
-//             <p className="image-caption">{blogPost.featuredImageAlt}</p>
-//           )}
-//         </div>
-//       )}
-
-//       {/* Main Content */}
-//       <main className="blog-post-content">
-//         <div className="content-grid">
-//           {/* Article Content */}
-//           <article className="article-main-content">
-//             <div 
-//               className="blog-content"
-//               dangerouslySetInnerHTML={{ __html: blogPost.content }}
-//             />
-
-//             {/* Tags */}
-//             {blogPost.tags && blogPost.tags.length > 0 && (
-//               <div className="tags-section">
-//                 <h4>Topics</h4>
-//                 <div className="tags-container">
-//                   {blogPost.tags.map((tag, index) => (
-//                     <a 
-//                       key={index} 
-//                       href={`/blog/tag/${tag.toLowerCase()}`}
-//                       className="tag"
-//                     >
-//                       {tag}
-//                     </a>
-//                   ))}
-//                 </div>
-//               </div>
-//             )}
-
-//             {/* Share Section */}
-//             <div className="share-section">
-//               <h4>Share this article</h4>
-//               <div className="share-buttons">
-//                 <button 
-//                   className="share-btn twitter"
-//                   onClick={() => {
-//                     const text = `${blogPost.title} - ${blogPost.excerpt}`;
-//                     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`;
-//                     window.open(url, '_blank');
-//                   }}
-//                 >
-//                   Twitter
-//                 </button>
-//                 <button 
-//                   className="share-btn linkedin"
-//                   onClick={() => {
-//                     const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`;
-//                     window.open(url, '_blank');
-//                   }}
-//                 >
-//                   LinkedIn
-//                 </button>
-//                 <button 
-//                   className="share-btn facebook"
-//                   onClick={() => {
-//                     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
-//                     window.open(url, '_blank');
-//                   }}
-//                 >
-//                   Facebook
-//                 </button>
-//                 <button 
-//                   className="share-btn copy-link"
-//                   onClick={() => {
-//                     navigator.clipboard.writeText(window.location.href);
-//                     alert('Link copied to clipboard!');
-//                   }}
-//                 >
-//                   Copy Link
-//                 </button>
-//               </div>
-//             </div>
-
-//             {/* Author Bio */}
-//             <div className="author-bio-section">
-//               <div className="author-bio-card">
-//                 <img 
-//                   src={blogPost.authorAvatar} 
-//                   alt={blogPost.author}
-//                   className="author-bio-avatar"
-//                   onError={(e) => {
-//                     e.currentTarget.src = 'https://via.placeholder.com/80x80/667eea/ffffff?text=AU';
-//                   }}
-//                 />
-//                 <div className="author-bio-content">
-//                   <h4>About {blogPost.author}</h4>
-//                   <p>{blogPost.authorBio}</p>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* Newsletter Signup */}
-//             <div className="newsletter-cta">
-//               <div className="newsletter-content">
-//                 <h4>Stay Updated with Artemis Insights</h4>
-//                 <p>Get the latest healthcare staffing trends and automation insights delivered to your inbox.</p>
-//                 <div className="newsletter-form">
-//                   <input 
-//                     type="email" 
-//                     placeholder="Enter your email address"
-//                     className="newsletter-input"
-//                   />
-//                   <button className="newsletter-submit">Subscribe</button>
-//                 </div>
-//               </div>
-//             </div>
-//           </article>
-
-//           {/* Sidebar */}
-//           <aside className="blog-sidebar">
-//             {/* Table of Contents */}
-//             <div className="sidebar-widget table-of-contents">
-//               <h4>In this article</h4>
-//               <nav className="toc-nav">
-//                 <a href="#introduction" className="toc-link">Introduction</a>
-//                 <a href="#automation-trends" className="toc-link">Automation Trends</a>
-//                 <a href="#artemis-solutions" className="toc-link">Artemis Solutions</a>
-//                 <a href="#future-outlook" className="toc-link">Future Outlook</a>
-//               </nav>
-//             </div>
-
-//             {/* Series Information */}
-//             {blogPost.metadata.series && (
-//               <div className="sidebar-widget series-info">
-//                 <h4>Series: {blogPost.metadata.series}</h4>
-//                 <p>Part of our ongoing exploration of AI in healthcare staffing.</p>
-//                 <a href={`/blog/series/${blogPost.metadata.series.toLowerCase().replace(/\s+/g, '-')}`} className="series-link">
-//                   View all articles
-//                 </a>
-//               </div>
-//             )}
-
-//             {/* Popular Tags */}
-//             <div className="sidebar-widget popular-tags">
-//               <h4>Popular Topics</h4>
-//               <div className="sidebar-tags">
-//                 <a href="/blog/tag/ai" className="sidebar-tag">AI</a>
-//                 <a href="/blog/tag/healthcare" className="sidebar-tag">Healthcare</a>
-//                 <a href="/blog/tag/automation" className="sidebar-tag">Automation</a>
-//                 <a href="/blog/tag/staffing" className="sidebar-tag">Staffing</a>
-//                 <a href="/blog/tag/innovation" className="sidebar-tag">Innovation</a>
-//                 <a href="/blog/tag/technology" className="sidebar-tag">Technology</a>
-//               </div>
-//             </div>
-
-//             {/* Related Companies */}
-//             {blogPost.metadata.relatedCompanies && blogPost.metadata.relatedCompanies.length > 0 && (
-//               <div className="sidebar-widget related-companies">
-//                 <h4>Mentioned Companies</h4>
-//                 <ul className="companies-list">
-//                   {blogPost.metadata.relatedCompanies.map((company, index) => (
-//                     <li key={index}>{company}</li>
-//                   ))}
-//                 </ul>
-//               </div>
-//             )}
-
-//             {/* CTA Widget */}
-//             <div className="sidebar-widget cta-widget">
-//               <h4>Ready to Transform Your Staffing?</h4>
-//               <p>See how Artemis can automate your healthcare staffing operations.</p>
-//               <a href="/demo" className="cta-button">Book a Demo</a>
-//             </div>
-//           </aside>
-//         </div>
-//       </main>
-
-//       {/* Related Posts Section */}
-//       {relatedPosts.length > 0 && (
-//         <section className="related-posts">
-//           <div className="related-posts-header">
-//             <h3>Related Articles</h3>
-//             <p>Continue reading with these related posts</p>
-//           </div>
-//           <div className="related-posts-grid">
-//             {relatedPosts.map((post) => (
-//               <article key={post.id} className="related-post-card">
-//                 <img src={post.featuredImage} alt={post.featuredImageAlt} />
-//                 <div className="related-post-content">
-//                   <span className="related-post-category">{post.category}</span>
-//                   <h5>{post.title}</h5>
-//                   <p>{post.excerpt}</p>
-//                   <a href={`/blog/${post.slug}`} className="read-more-link">
-//                     Read More →
-//                   </a>
-//                 </div>
-//               </article>
-//             ))}
-//           </div>
-//         </section>
-//       )}
-
-//       {/* Comments Section */}
-//       <section className="comments-section">
-//         <div className="comments-header">
-//           <h3>
-//             Discussion ({blogPost.commentCount})
-//           </h3>
-//           <p>Join the conversation about healthcare automation</p>
-//         </div>
-        
-//         <div className="comments-coming-soon">
-//           <div className="coming-soon-content">
-//             <h4>Comments Coming Soon</h4>
-//             <p>We're building a community discussion feature to enable conversations around our articles.</p>
-//             <div className="comment-alternatives">
-//               <p>In the meantime, you can:</p>
-//               <ul>
-//                 <li>Share your thoughts on LinkedIn and tag us</li>
-//                 <li>Reach out via our contact form</li>
-//                 <li>Join our newsletter for updates</li>
-//               </ul>
-//             </div>
-//           </div>
-//         </div>
-//       </section>
-//     </div>
-//   );
-// };
-
-// export default BlogPost;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import './Blog.css';
+import styles from './BlogPost.module.css';
+// import '..article/Article.module.css';
 
 interface BlogPostData {
   id: string;
@@ -560,77 +62,125 @@ interface BlogPostData {
 }
 
 const BlogPost: React.FC = () => {
-  const [blogPost, setBlogPost] = useState<BlogPostData | null>(null);
+  const [blogPosts, setBlogPosts] = useState<BlogPostData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedPost, setSelectedPost] = useState<BlogPostData | null>(null);
+  const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
   const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([]);
-  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
-  const [email, setEmail] = useState('');
 
   useEffect(() => {
-    const fetchBlogPost = async () => {
+    const fetchBlogPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          '/api/v1/seo-blogs/slug/future-of-healthcare-automation-artemis',
-          {
-            method: 'GET',
-            headers: {
-              'accept': '*/*',
-              'X-Tenant': '68b20dd0fb42964f2328b424'
-            }
+        console.log('🔍 Fetching blog posts from API...');
+        
+        const response = await fetch('/api/v1/seo-blogs/', {
+          method: 'GET',
+          headers: {
+            'accept': '*/*',
+            'X-Tenant': '68b20dd0fb42964f2328b424'
           }
-        );
+        });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch blog post: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
-        setBlogPost(data);
+        const data: BlogPostData[] = await response.json();
+        console.log('✅ Blog API Response received:', data);
+        console.log(`📊 Total blog posts from API: ${data.length}`);
         
-        // Simulate related posts fetch
-        setTimeout(() => {
-          setRelatedPosts([
-            {
-              ...data,
-              id: '2',
-              title: 'AI in Healthcare: Transforming Patient Care',
-              excerpt: 'Explore how artificial intelligence is revolutionizing patient care and medical diagnostics.',
-              category: 'AI & Technology'
-            },
-            {
-              ...data,
-              id: '3',
-              title: 'The Future of Medical Staffing',
-              excerpt: 'Understanding the evolving landscape of healthcare staffing in the digital age.',
-              category: 'Staffing'
-            },
-            {
-              ...data,
-              id: '4',
-              title: 'Automating Healthcare Operations',
-              excerpt: 'How automation is streamlining healthcare operations and improving efficiency.',
-              category: 'Automation'
-            }
-          ] as any);
-        }, 1000);
+        // Filter only published posts
+        const publishedPosts = data.filter(post => post.published && post.status === 'PUBLISHED');
+        console.log(`🎯 Published blog posts after filtering: ${publishedPosts.length}`);
+        setBlogPosts(publishedPosts);
+        
+        // Simulate related posts
+        if (publishedPosts.length > 0) {
+          setRelatedPosts(publishedPosts.slice(0, 3).map((post, index) => ({
+            ...post,
+            id: `related-${index}`,
+            title: `Related: ${post.title}`,
+            excerpt: `Explore more about ${post.category} and related topics...`
+          })));
+        }
+        
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('❌ Error fetching blog posts:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load blog posts');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBlogPost();
+    fetchBlogPosts();
   }, []);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  // Handle post card click
+  const handlePostClick = (post: BlogPostData) => {
+    setSelectedPost(post);
+    
+    // Add to expanded posts set
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      newSet.add(post.id);
+      return newSet;
     });
+
+    // Scroll to the post detail section
+    setTimeout(() => {
+      const element = document.getElementById(`post-${post.slug}`);
+      if (element) {
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start'
+        });
+      }
+    }, 100);
+  };
+
+  // Toggle post expansion
+  const togglePostExpansion = (postId: string) => {
+    setExpandedPosts(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+      }
+      return newSet;
+    });
+  };
+
+  // Get unique categories for filter
+  const categories = ['All', ...new Set(blogPosts.map(post => post.category))];
+
+  // Filter posts based on search and category
+  const filteredPosts = blogPosts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (post.tags && post.tags.some(tag => 
+                           tag.toLowerCase().includes(searchTerm.toLowerCase())
+                         ));
+    
+    const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   const formatNumber = (num: number) => {
@@ -640,490 +190,538 @@ const BlogPost: React.FC = () => {
     return num.toString();
   };
 
-  const handleShare = (platform: string) => {
-    const shareUrl = window.location.href;
-    const title = blogPost?.title || '';
-    const text = blogPost?.excerpt || '';
+  const handleShare = (post: BlogPostData, platform: 'twitter' | 'linkedin' | 'facebook' | 'copy', e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = typeof window !== 'undefined' 
+      ? `${window.location.origin}/blog/${post.slug}`
+      : '';
+    const title = post.title;
 
-    const shareConfig: { [key: string]: string } = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(shareUrl)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-      copy: shareUrl
+    const shareUrls = {
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      copy: url
     };
 
     if (platform === 'copy') {
-      navigator.clipboard.writeText(shareUrl);
+      navigator.clipboard.writeText(url);
       alert('Link copied to clipboard!');
     } else {
-      window.open(shareConfig[platform], '_blank', 'width=600,height=400');
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
-    
-    setIsShareMenuOpen(false);
   };
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      alert(`Thank you for subscribing with: ${email}`);
-      setEmail('');
-    }
+  const handleBookmark = (postId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    alert(`Blog post ${postId} bookmarked!`);
+  };
+
+  // Function to render post content with basic HTML support
+  const renderPostContent = (content: string) => {
+    return { __html: content };
   };
 
   if (loading) {
     return (
-      <div className="blog-loading">
-        <div className="loading-container">
-          <div className="loading-animation">
-            <div className="loading-spinner"></div>
-            <div className="loading-pulse"></div>
-          </div>
-          <div className="loading-content">
-            <h3>Loading Article</h3>
-            <p>Preparing your reading experience...</p>
-          </div>
-        </div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.spinner}></div>
+        <p className={styles.loadingText}>Loading Blog Posts from API...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="blog-error">
-        <div className="error-container">
-          <div className="error-icon">📝</div>
-          <div className="error-content">
-            <h2>Unable to Load Article</h2>
-            <p>{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="retry-button"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!blogPost) {
-    return (
-      <div className="blog-not-found">
-        <div className="not-found-container">
-          <div className="not-found-icon">🔍</div>
-          <div className="not-found-content">
-            <h2>Article Not Found</h2>
-            <p>The requested blog post could not be located in our archives.</p>
-          </div>
+      <div className={styles.errorContainer}>
+        <div className={styles.errorContent}>
+          <div className={styles.errorIcon}>⚠️</div>
+          <h1 className={styles.errorTitle}>Error Loading Blog Posts</h1>
+          <p className={styles.errorMessage}>{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className={styles.primaryButton}
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="blog-post">
-      {/* SEO Structured Data */}
-      {blogPost.seoMeta?.structuredData && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(blogPost.seoMeta.structuredData)
-          }}
-        />
-      )}
-
-      {/* Header Section */}
-      <header className="blog-header">
-        <div className="header-container">
-          {/* Breadcrumb */}
-          <nav className="blog-breadcrumb">
-            <a href="/" className="breadcrumb-link">Home</a>
-            <span className="breadcrumb-separator">/</span>
-            <a href="/blog" className="breadcrumb-link">Blog</a>
-            <span className="breadcrumb-separator">/</span>
-            <a 
-              href={`/blog/category/${blogPost.category.toLowerCase().replace(/\s+/g, '-')}`}
-              className="breadcrumb-link"
-            >
-              {blogPost.category}
-            </a>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">{blogPost.title}</span>
+    <>
+      <div className={styles.container}>
+        {/* Header */}
+        <header className={styles.header}>
+          <nav className={styles.breadcrumb}>
+            <a href="/" className={styles.breadcrumbLink}>Home</a>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <span className={styles.breadcrumbCurrent}>Blog</span>
           </nav>
 
-          {/* Category & Featured Badge */}
-          <div className="blog-meta-header">
-            <div className="category-badge">{blogPost.category}</div>
-            {blogPost.featured && (
-              <div className="featured-badge">
-                <span className="featured-star">⭐</span>
-                Featured
+          <div className={styles.headerContent}>
+            <h1 className={styles.title}>Blog Hub</h1>
+            <p className={styles.summary}>
+              Discover insightful articles, tutorials, and news about healthcare technology and innovation
+            </p>
+            
+            {/* Stats */}
+            <div className={styles.statsGrid}>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>{blogPosts.length}</span>
+                <span className={styles.statLabel}>Total Posts</span>
               </div>
-            )}
-          </div>
-
-          {/* Title & Excerpt */}
-          <div className="title-section">
-            <h1 className="blog-title">{blogPost.title}</h1>
-            <p className="blog-excerpt">{blogPost.excerpt}</p>
-          </div>
-
-          {/* Author & Stats */}
-          <div className="blog-meta">
-            <div className="author-info">
-              <div className="author-avatar">
-                <img 
-                  src={blogPost.authorAvatar} 
-                  alt={blogPost.author}
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face&auto=format';
-                  }}
-                />
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>
+                  {blogPosts.filter(p => p.featured).length}
+                </span>
+                <span className={styles.statLabel}>Featured</span>
               </div>
-              <div className="author-details">
-                <div className="author-name">{blogPost.author}</div>
-                <div className="publish-info">
-                  <span className="publish-date">{formatDate(blogPost.publishedAt)}</span>
-                  <span className="meta-divider">•</span>
-                  <span className="read-time">{blogPost.readingTimeMinutes} min read</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="post-stats">
-              <div className="stat-item">
-                <div className="stat-icon">👁️</div>
-                <div className="stat-content">
-                  <div className="stat-number">{formatNumber(blogPost.viewCount)}</div>
-                  <div className="stat-label">Views</div>
-                </div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-icon">💬</div>
-                <div className="stat-content">
-                  <div className="stat-number">{formatNumber(blogPost.commentCount)}</div>
-                  <div className="stat-label">Comments</div>
-                </div>
-              </div>
-              <div className="stat-item">
-                <div className="stat-icon">📤</div>
-                <div className="stat-content">
-                  <div className="stat-number">{formatNumber(blogPost.shareCount)}</div>
-                  <div className="stat-label">Shares</div>
-                </div>
+              <div className={styles.statItem}>
+                <span className={styles.statNumber}>
+                  {categories.length - 1}
+                </span>
+                <span className={styles.statLabel}>Categories</span>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Featured Image */}
-      {blogPost.featuredImage && (
-        <div className="featured-media">
-          <div className="image-container">
-            <img 
-              src={blogPost.featuredImage} 
-              alt={blogPost.featuredImageAlt}
-              className="featured-image"
-            />
-          </div>
-          {blogPost.featuredImageAlt && (
-            <div className="image-caption">{blogPost.featuredImageAlt}</div>
+        {/* API Status Info */}
+        <div className={styles.apiStatus}>
+          <strong>📡 API Status:</strong> Connected to{' '}
+          <code>/api/v1/seo-blogs</code>{' '}
+          | Showing <strong>{filteredPosts.length}</strong> of{' '}
+          <strong>{blogPosts.length}</strong> published posts
+          {selectedPost && (
+            <span> | 📖 Viewing: <strong>{selectedPost.title}</strong></span>
           )}
         </div>
-      )}
 
-      {/* Main Content */}
-      <div className="blog-content-layout">
-        <div className="content-container">
-          
-          {/* Primary Content */}
-          <main className="primary-content">
-            
-            {/* Article Content */}
-            <article className="article-content">
-              <div 
-                className="content-body"
-                dangerouslySetInnerHTML={{ __html: blogPost.content }}
-              />
-            </article>
-
-            {/* Tags Section */}
-            {blogPost.tags && blogPost.tags.length > 0 && (
-              <section className="tags-section">
-                <div className="section-header">
-                  <h3 className="section-title">Topics Covered</h3>
-                </div>
-                <div className="tags-container">
-                  {blogPost.tags.map((tag, index) => (
-                    <a 
-                      key={index} 
-                      href={`/blog/tag/${tag.toLowerCase().replace(/\s+/g, '-')}`}
-                      className="topic-tag"
-                    >
-                      #{tag}
-                    </a>
-                  ))}
-                </div>
-              </section>
+        {/* Filters Section */}
+        <div className={styles.filtersSection}>
+          <div className={styles.searchBox}>
+            <div className={styles.searchIcon}>🔍</div>
+            <input
+              type="text"
+              placeholder="Search blog posts, tags, or topics..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
+            {searchTerm && (
+              <button 
+                onClick={() => setSearchTerm('')}
+                className={styles.clearSearch}
+              >
+                ✕
+              </button>
             )}
+          </div>
 
-            {/* Share Section */}
-            <section className="share-section">
-              <div className="share-container">
-                <div className="share-header">
-                  <h4 className="share-title">Found this article helpful?</h4>
-                  <p className="share-subtitle">Share it with your network</p>
-                </div>
-                <div className="share-buttons">
-                  <button 
-                    className="share-button twitter"
-                    onClick={() => handleShare('twitter')}
-                  >
-                    <span className="button-icon">𝕏</span>
-                    <span className="button-text">Twitter</span>
-                  </button>
-                  <button 
-                    className="share-button linkedin"
-                    onClick={() => handleShare('linkedin')}
-                  >
-                    <span className="button-icon">in</span>
-                    <span className="button-text">LinkedIn</span>
-                  </button>
-                  <button 
-                    className="share-button facebook"
-                    onClick={() => handleShare('facebook')}
-                  >
-                    <span className="button-icon">f</span>
-                    <span className="button-text">Facebook</span>
-                  </button>
-                  <button 
-                    className="share-button copy"
-                    onClick={() => handleShare('copy')}
-                  >
-                    <span className="button-icon">🔗</span>
-                    <span className="button-text">Copy Link</span>
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            {/* Author Bio */}
-            <section className="author-bio-section">
-              <div className="author-bio-card">
-                <div className="author-bio-avatar">
-                  <img 
-                    src={blogPost.authorAvatar} 
-                    alt={blogPost.author}
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face&auto=format';
-                    }}
-                  />
-                </div>
-                <div className="author-bio-content">
-                  <div className="author-bio-header">
-                    <h4>About {blogPost.author}</h4>
-                    <div className="author-role">Senior Writer</div>
-                  </div>
-                  <p className="author-bio-text">{blogPost.authorBio}</p>
-                </div>
-              </div>
-            </section>
-
-            {/* Newsletter CTA */}
-            <section className="newsletter-section">
-              <div className="newsletter-card">
-                <div className="newsletter-content">
-                  <div className="newsletter-icon">📬</div>
-                  <h4 className="newsletter-title">Stay Updated with Artemis</h4>
-                  <p className="newsletter-description">
-                    Get the latest insights on healthcare automation, AI trends, and staffing innovations delivered to your inbox.
-                  </p>
-                  <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
-                    <div className="form-group">
-                      <input 
-                        type="email" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email address"
-                        className="newsletter-input"
-                        required
-                      />
-                      <button type="submit" className="newsletter-button">
-                        Subscribe
-                      </button>
-                    </div>
-                    <p className="newsletter-note">
-                      No spam. Unsubscribe at any time.
-                    </p>
-                  </form>
-                </div>
-              </div>
-            </section>
-
-          </main>
-
-          {/* Sidebar */}
-          <aside className="blog-sidebar">
-            
-            {/* Table of Contents */}
-            <div className="sidebar-widget toc-widget">
-              <div className="widget-header">
-                <h4 className="widget-title">In This Article</h4>
-                <div className="widget-icon">📑</div>
-              </div>
-              <nav className="toc-nav">
-                <a href="#introduction" className="toc-link">
-                  <span className="toc-bullet"></span>
-                  <span className="toc-text">Introduction</span>
-                </a>
-                <a href="#trends" className="toc-link">
-                  <span className="toc-bullet"></span>
-                  <span className="toc-text">Current Trends</span>
-                </a>
-                <a href="#solutions" className="toc-link">
-                  <span className="toc-bullet"></span>
-                  <span className="toc-text">Artemis Solutions</span>
-                </a>
-                <a href="#future" className="toc-link">
-                  <span className="toc-bullet"></span>
-                  <span className="toc-text">Future Outlook</span>
-                </a>
-                <a href="#conclusion" className="toc-link">
-                  <span className="toc-bullet"></span>
-                  <span className="toc-text">Conclusion</span>
-                </a>
-              </nav>
-            </div>
-
-            {/* Series Info */}
-            {blogPost.metadata.series && (
-              <div className="sidebar-widget series-widget">
-                <div className="widget-header">
-                  <h4 className="widget-title">Series</h4>
-                  <div className="widget-icon">📚</div>
-                </div>
-                <div className="series-content">
-                  <div className="series-name">{blogPost.metadata.series}</div>
-                  <p className="series-description">
-                    Part of our ongoing exploration of AI in healthcare staffing.
-                  </p>
-                  <a 
-                    href={`/blog/series/${blogPost.metadata.series.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="series-link"
-                  >
-                    View All Articles →
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {/* Popular Tags */}
-            <div className="sidebar-widget tags-widget">
-              <div className="widget-header">
-                <h4 className="widget-title">Popular Topics</h4>
-                <div className="widget-icon">🏷️</div>
-              </div>
-              <div className="tags-grid">
-                {['AI', 'Healthcare', 'Automation', 'Staffing', 'Innovation', 'Technology', 'Digital Health', 'Workforce'].map((tag) => (
-                  <a 
-                    key={tag}
-                    href={`/blog/tag/${tag.toLowerCase()}`}
-                    className="sidebar-tag"
-                  >
-                    {tag}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* CTA Widget */}
-            <div className="sidebar-widget cta-widget">
-              <div className="cta-content">
-                <div className="cta-icon">🚀</div>
-                <h4 className="cta-title">Ready to Transform Your Staffing?</h4>
-                <p className="cta-description">
-                  See how Artemis can automate your healthcare staffing operations.
-                </p>
-                <a href="/demo" className="cta-button">
-                  Book a Demo
-                </a>
-              </div>
-            </div>
-
-          </aside>
+          <div className={styles.categoryFilters}>
+            {categories.map(category => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`${styles.categoryFilter} ${
+                  selectedCategory === category ? styles.active : ''
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Related Posts */}
-      {relatedPosts.length > 0 && (
-        <section className="related-posts-section">
-          <div className="section-container">
-            <div className="section-header">
-              <h2 className="section-title">Continue Reading</h2>
-              <p className="section-subtitle">Explore more articles on similar topics</p>
-            </div>
-            <div className="related-posts-grid">
-              {relatedPosts.map((post) => (
-                <article key={post.id} className="related-post-card">
-                  <div className="post-image">
+        {/* Blog Posts Grid */}
+        <div className={styles.postsGrid}>
+          {filteredPosts.map((post) => (
+            <article 
+              key={post.id} 
+              className={`${styles.postCard} ${post.featured ? styles.featured : ''} ${
+                selectedPost?.id === post.id ? styles.selected : ''
+              }`}
+              onClick={() => handlePostClick(post)}
+            >
+              {/* Featured Badge */}
+              {post.featured && (
+                <div className={styles.featuredRibbon}>
+                  <span>⭐ Featured</span>
+                </div>
+              )}
+
+              {/* Image */}
+              <div className={styles.cardImageContainer}>
+                <img 
+                  src={post.featuredImage || '/api/placeholder/400/200'} 
+                  alt={post.featuredImageAlt || post.title}
+                  className={styles.cardImage}
+                  onError={(e) => {
+                    e.currentTarget.src = '/api/placeholder/400/200';
+                  }}
+                />
+                <div className={styles.imageOverlay} />
+                
+                {/* Category Badge */}
+                <div className={styles.cardBadges}>
+                  <span className={styles.categoryBadge}>
+                    {post.category}
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className={styles.cardContent}>
+                <div className={styles.cardMeta}>
+                  <span className={styles.category}>{post.category}</span>
+                  <span className={styles.publishDate}>
+                    {formatDate(post.publishedAt)}
+                  </span>
+                  <span className={styles.readingTime}>
+                    {post.readingTimeMinutes || 5} min read
+                  </span>
+                </div>
+
+                <h2 className={styles.cardTitle}>
+                  {post.title}
+                </h2>
+
+                <p className={styles.cardSummary}>
+                  {post.excerpt || 'No excerpt available'}
+                </p>
+
+                {/* Author Info */}
+                <div className={styles.cardAuthor}>
+                  <div className={styles.authorInfo}>
+                    {post.authorAvatar && (
+                      <img 
+                        src={post.authorAvatar} 
+                        alt={post.author}
+                        className={styles.authorAvatar}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div className={styles.authorDetails}>
+                      <span className={styles.authorName}>
+                        {post.author || 'Unknown Author'}
+                      </span>
+                      {post.authorBio && (
+                        <span className={styles.authorBio}>
+                          {post.authorBio.length > 60 
+                            ? `${post.authorBio.substring(0, 60)}...`
+                            : post.authorBio
+                          }
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                  <div className={styles.cardTags}>
+                    {post.tags.slice(0, 4).map((tag, index) => (
+                      <span key={index} className={styles.tag}>
+                        #{tag}
+                      </span>
+                    ))}
+                    {post.tags.length > 4 && (
+                      <span className={styles.moreTags}>
+                        +{post.tags.length - 4} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Stats and Actions */}
+                <div className={styles.cardFooter}>
+                  <div className={styles.cardStats}>
+                    <div className={styles.stat}>
+                      <span className={styles.statIcon}>👁️</span>
+                      <span>{formatNumber(post.viewCount || 0)}</span>
+                    </div>
+                    <div className={styles.stat}>
+                      <span className={styles.statIcon}>💬</span>
+                      <span>{formatNumber(post.commentCount || 0)}</span>
+                    </div>
+                    <div className={styles.stat}>
+                      <span className={styles.statIcon}>📤</span>
+                      <span>{formatNumber(post.shareCount || 0)}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.cardActions}>
+                    <button 
+                      onClick={(e) => handleShare(post, 'twitter', e)}
+                      className={styles.actionButton}
+                      title="Share on Twitter"
+                    >
+                      🐦
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(post, 'linkedin', e)}
+                      className={styles.actionButton}
+                      title="Share on LinkedIn"
+                    >
+                      💼
+                    </button>
+                    <button 
+                      onClick={(e) => handleBookmark(post.id, e)}
+                      className={styles.actionButton}
+                      title="Bookmark post"
+                    >
+                      📑
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {/* Blog Post Details Sections */}
+        <div className={styles.postDetailsContainer}>
+          {filteredPosts.map((post) => (
+            <section 
+              key={post.id}
+              id={`post-${post.slug}`}
+              className={`${styles.postDetail} ${
+                expandedPosts.has(post.id) ? styles.expanded : ''
+              }`}
+            >
+              <div className={styles.postDetailHeader}>
+                <div className={styles.postDetailMeta}>
+                  <span className={styles.postDetailCategory}>{post.category}</span>
+                  <span className={styles.postDetailDate}>
+                    {formatDate(post.publishedAt)}
+                  </span>
+                  <span className={styles.postDetailReadingTime}>
+                    {post.readingTimeMinutes || 5} min read
+                  </span>
+                  {post.metadata?.series && (
+                    <span className={styles.seriesBadge}>
+                      Series: {post.metadata.series}
+                    </span>
+                  )}
+                </div>
+
+                <h1 className={styles.postDetailTitle}>
+                  {post.title}
+                </h1>
+
+                <p className={styles.postDetailExcerpt}>
+                  {post.excerpt}
+                </p>
+
+                {post.featuredImage && (
+                  <div className={styles.postDetailImageContainer}>
                     <img 
                       src={post.featuredImage} 
-                      alt={post.featuredImageAlt}
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop&auto=format';
-                      }}
+                      alt={post.featuredImageAlt || post.title}
+                      className={styles.postDetailImage}
                     />
-                    <div className="post-category">{post.category}</div>
                   </div>
-                  <div className="post-content">
-                    <h3 className="post-title">{post.title}</h3>
-                    <p className="post-excerpt">{post.excerpt}</p>
-                    <a href={`/blog/${post.slug}`} className="read-more-link">
-                      Read Article →
+                )}
+
+                <div className={styles.postDetailAuthor}>
+                  {post.authorAvatar && (
+                    <img 
+                      src={post.authorAvatar} 
+                      alt={post.author}
+                      className={styles.postDetailAuthorAvatar}
+                    />
+                  )}
+                  <div className={styles.postDetailAuthorInfo}>
+                    <h3 className={styles.postDetailAuthorName}>{post.author}</h3>
+                    {post.authorBio && (
+                      <p className={styles.postDetailAuthorBio}>{post.authorBio}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.postDetailContent}>
+                <div 
+                  className={styles.postContent}
+                  dangerouslySetInnerHTML={renderPostContent(post.content)}
+                />
+                
+                {post.tags && post.tags.length > 0 && (
+                  <div className={styles.postDetailTags}>
+                    <h4>Topics Covered</h4>
+                    <div className={styles.postTagsList}>
+                      {post.tags.map((tag, index) => (
+                        <span key={index} className={styles.postTag}>
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* SEO Meta Info */}
+                {post.seoMeta && (
+                  <div className={styles.seoMetaSection}>
+                    <h4>SEO Information</h4>
+                    <div className={styles.seoMetaGrid}>
+                      <div className={styles.seoMetaItem}>
+                        <strong>Meta Title:</strong>
+                        <span>{post.seoMeta.metaTitle}</span>
+                      </div>
+                      <div className={styles.seoMetaItem}>
+                        <strong>Meta Description:</strong>
+                        <span>{post.seoMeta.metaDescription}</span>
+                      </div>
+                      {post.seoMeta.metaKeywords && (
+                        <div className={styles.seoMetaItem}>
+                          <strong>Keywords:</strong>
+                          <span>{post.seoMeta.metaKeywords.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Post Actions */}
+                <div className={styles.postDetailActions}>
+                  <button 
+                    onClick={() => togglePostExpansion(post.id)}
+                    className={styles.collapseButton}
+                  >
+                    {expandedPosts.has(post.id) ? '▲ Collapse' : '▼ Expand'}
+                  </button>
+                  <div className={styles.postSocialActions}>
+                    <span>Share: </span>
+                    <button 
+                      onClick={(e) => handleShare(post, 'twitter', e)}
+                      className={styles.socialButton}
+                    >
+                      Twitter
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(post, 'linkedin', e)}
+                      className={styles.socialButton}
+                    >
+                      LinkedIn
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(post, 'facebook', e)}
+                      className={styles.socialButton}
+                    >
+                      Facebook
+                    </button>
+                    <button 
+                      onClick={(e) => handleShare(post, 'copy', e)}
+                      className={styles.socialButton}
+                    >
+                      Copy Link
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
+
+        {/* Related Posts Section */}
+        {relatedPosts.length > 0 && (
+          <section className={styles.relatedPostsSection}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Related Posts</h2>
+              <p className={styles.sectionSubtitle}>Continue reading with these related articles</p>
+            </div>
+            <div className={styles.relatedPostsGrid}>
+              {relatedPosts.map((post) => (
+                <article key={post.id} className={styles.relatedPostCard}>
+                  <div className={styles.relatedPostImage}>
+                    <img 
+                      src={post.featuredImage || '/api/placeholder/300/200'} 
+                      alt={post.featuredImageAlt || post.title}
+                    />
+                    <div className={styles.relatedPostCategory}>{post.category}</div>
+                  </div>
+                  <div className={styles.relatedPostContent}>
+                    <h3 className={styles.relatedPostTitle}>{post.title}</h3>
+                    <p className={styles.relatedPostExcerpt}>{post.excerpt}</p>
+                    <a href={`/blog/${post.slug}`} className={styles.readMoreLink}>
+                      Read More →
                     </a>
                   </div>
                 </article>
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* Comments Section */}
-      <section className="comments-section">
-        <div className="section-container">
-          <div className="section-header">
-            <h2 className="section-title">
-              Join the Discussion ({blogPost.commentCount})
-            </h2>
-            <p className="section-subtitle">
-              Share your thoughts on healthcare automation
+        {/* Empty State */}
+        {filteredPosts.length === 0 && (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>🔍</div>
+            <h3 className={styles.emptyTitle}>No blog posts found</h3>
+            <p className={styles.emptyMessage}>
+              {searchTerm || selectedCategory !== 'All' 
+                ? 'Try adjusting your search or filter criteria'
+                : blogPosts.length === 0 
+                  ? 'No published blog posts available from the API'
+                  : 'No posts match your criteria'
+              }
             </p>
+            {(searchTerm || selectedCategory !== 'All') && (
+              <button 
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedCategory('All');
+                }}
+                className={styles.primaryButton}
+              >
+                Clear Filters
+              </button>
+            )}
+            {blogPosts.length === 0 && (
+              <button 
+                onClick={() => window.location.reload()}
+                className={styles.primaryButton}
+              >
+                Refresh Posts
+              </button>
+            )}
           </div>
-          
-          <div className="comments-coming-soon">
-            <div className="coming-soon-content">
-              <div className="coming-soon-icon">💬</div>
-              <h3 className="coming-soon-title">Comments Coming Soon</h3>
-              <p className="coming-soon-description">
-                We're building a community discussion feature to enable meaningful conversations around our articles.
+        )}
+
+        {/* Footer */}
+        <footer className={styles.footer}>
+          <div className={styles.footerContent}>
+            <div className={styles.footerInfo}>
+              <h3 className={styles.footerTitle}>Artemis Blog</h3>
+              <p className={styles.footerDescription}>
+                Sharing insights and innovations in healthcare technology and staffing solutions.
               </p>
-              <div className="coming-soon-alternatives">
-                <h4>In the meantime, you can:</h4>
-                <ul className="alternatives-list">
-                  <li>Share your thoughts on LinkedIn and tag @Artemis</li>
-                  <li>Reach out via our contact form</li>
-                  <li>Join our newsletter for updates on new features</li>
-                </ul>
+            </div>
+            <div className={styles.footerStats}>
+              <div className={styles.footerStat}>
+                <span className={styles.footerStatNumber}>{blogPosts.length}</span>
+                <span className={styles.footerStatLabel}>Posts Published</span>
+              </div>
+              <div className={styles.footerStat}>
+                <span className={styles.footerStatNumber}>
+                  {blogPosts.reduce((acc, post) => acc + (post.viewCount || 0), 0)}
+                </span>
+                <span className={styles.footerStatLabel}>Total Views</span>
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-    </div>
+          <div className={styles.footerBottom}>
+            <p className={styles.footerText}>
+              © {new Date().getFullYear()} Artemis Blog. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 };
 
