@@ -19,7 +19,7 @@ const SeoMeta: React.FC = () => {
     canonicalUrl,
     favicon,
   } = seoConfig;
-
+console.log("SEO Config in SeoMeta:", seoConfig);
   return (
     <Head>
       {/* Title */}

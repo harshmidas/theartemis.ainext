@@ -45,10 +45,7 @@ import DynamicScripts from "../components/DynamicScripts";
 const inter = Inter({ subsets: ["latin"] });
 
 // Default metadata (can be overridden by dynamic SEO config)
-export const metadata: Metadata = {
-  title: "Default Title",
-  description: "Default description",
-};
+
 
 export default function RootLayout({
   children,
@@ -170,3 +167,4 @@ export default function RootLayout({
 //     </html>
 //   );
 // }
+
