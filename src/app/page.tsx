@@ -3262,25 +3262,32 @@ const Home: NextPage = () => {
                 Superpowers
               </a>
               <a
-                href="#pricing"
-                onClick={handleScrollTo("#pricing")}
+                href="/News"
+                // onClick={handleScrollTo("#superpowers")}
                 className="nav-link"
               >
-                Pricing
+                News
               </a>
               <a
-                href="#integrations"
-                onClick={handleScrollTo("#integrations")}
+                href="/Blog"
+                // onClick={handleScrollTo("#pricing")}
                 className="nav-link"
               >
-                Integrations
+                Blog
               </a>
               <a
-                href="#resources"
-                onClick={handleScrollTo("#resources")}
+                href="/Press"
+                // onClick={handleScrollTo("#integrations")}
                 className="nav-link"
               >
-                Resources
+                Press
+              </a>
+              <a
+                href="/Article"
+                // onClick={handleScrollTo("#resources")}
+                className="nav-link"
+              >
+                Article
               </a>
             </div>
             <a

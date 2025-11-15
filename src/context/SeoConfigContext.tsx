@@ -31,13 +31,13 @@ export const SeoConfigProvider: React.FC<{ children: ReactNode }> = ({
       try {
         // Get current domain from window location
         let currentDomain = window.location.hostname;
-        if (currentDomain === "localhost") {
+        if (currentDomain === "localhost"|| currentDomain === "www.theartemis.ai") {
           currentDomain = "theartemis.ai";
         }
 
         const response = await axios.get<SeoWebsite>(
           `/api/v1/seo-websites/domain/${currentDomain}`,
-          { headers: { "X-Tenant": "68cc764fbfc57730593b4a32" } }
+          { headers: { "X-Tenant": "68b20dd0fb42964f2328b424" } }
         );
 
         if (response.data) {
