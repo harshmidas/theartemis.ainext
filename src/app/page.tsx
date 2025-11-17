@@ -3254,14 +3254,42 @@ const Home: NextPage = () => {
               >
                 About
               </a>
-              <a
+              {/* <a
                 href="#superpowers"
                 onClick={handleScrollTo("#superpowers")}
                 className="nav-link"
               >
                 Superpowers
+              </a> */}
+              <a
+                href="/News"
+                onClick={handleScrollTo("#superpowers")}
+                className="nav-link"
+              >
+              Superpowers
               </a>
               <a
+                href="/Blog"
+                onClick={handleScrollTo("#pricing")}
+                className="nav-link"
+              >
+                Pricing
+              </a>
+              <a
+                href="/Article"
+                onClick={handleScrollTo("#resources")}
+                className="nav-link"
+              >
+                Resources
+              </a>
+              <a
+                href="/Press"
+                onClick={handleScrollTo("#integrations")}
+                className="nav-link"
+              >
+                Integrations
+              </a>
+              {/* <a
                 href="/News"
                 // onClick={handleScrollTo("#superpowers")}
                 className="nav-link"
@@ -3281,14 +3309,7 @@ const Home: NextPage = () => {
                 className="nav-link"
               >
                 Press
-              </a>
-              <a
-                href="/Article"
-                // onClick={handleScrollTo("#resources")}
-                className="nav-link"
-              >
-                Article
-              </a>
+              </a> */}
             </div>
             <a
               href="#demo"
