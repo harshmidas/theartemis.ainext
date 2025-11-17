@@ -355,11 +355,11 @@ const BlogPost: React.FC = () => {
               {/* Image */}
               <div className={styles.cardImageContainer}>
                 <img 
-                  src={post.featuredImage || '/api/placeholder/400/200'} 
+                  src={post.featuredImage} 
                   alt={post.featuredImageAlt || post.title}
                   className={styles.cardImage}
                   onError={(e) => {
-                    e.currentTarget.src = '/api/placeholder/400/200';
+                    // e.currentTarget.src = '/api/placeholder/400/200';
                   }}
                 />
                 <div className={styles.imageOverlay} />
@@ -639,7 +639,7 @@ const BlogPost: React.FC = () => {
                 <article key={post.id} className={styles.relatedPostCard}>
                   <div className={styles.relatedPostImage}>
                     <img 
-                      src={post.featuredImage || '/api/placeholder/300/200'} 
+                      src={post.featuredImage } 
                       alt={post.featuredImageAlt || post.title}
                     />
                     <div className={styles.relatedPostCategory}>{post.category}</div>

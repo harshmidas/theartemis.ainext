@@ -353,11 +353,11 @@ const NewsArticles = () => {
               {/* Image */}
               <div className={styles.cardImageContainer}>
                 <img 
-                  src={article.featuredImage || '/api/placeholder/400/200'} 
+                  src={article.featuredImage} 
                   alt={article.featuredImageAlt || article.title}
                   className={styles.cardImage}
                   onError={(e) => {
-                    e.currentTarget.src = '/api/placeholder/400/200';
+                    // e.currentTarget.src = '/api/placeholder/400/200';
                   }}
                 />
                 <div className={styles.imageOverlay} />

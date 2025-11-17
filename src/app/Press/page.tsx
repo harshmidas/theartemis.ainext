@@ -403,11 +403,11 @@ const PressRelease: React.FC = () => {
               {/* Image */}
               <div className={styles.cardImageContainer}>
                 <img 
-                  src={release.featuredImage || '/api/placeholder/400/200'} 
+                  src={release.featuredImage} 
                   alt={release.featuredImageAlt || release.title}
                   className={styles.cardImage}
                   onError={(e) => {
-                    e.currentTarget.src = '/api/placeholder/400/200';
+                    // e.currentTarget.src = '/api/placeholder/400/200';
                   }}
                 />
                 <div className={styles.imageOverlay} />
