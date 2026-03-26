@@ -109,7 +109,7 @@ const PressRelease: React.FC = () => {
         setLoading(true);
         console.log('🔍 Fetching press releases from API...');
         
-        const response = await fetch('/api/v1/seo-press/', {
+        const response = await fetch('/api/v1/seo-press/category/Technology', {
           method: 'GET',
           headers: {
             'accept': '*/*',
