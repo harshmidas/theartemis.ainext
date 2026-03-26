@@ -63,7 +63,7 @@ const NewsArticles = () => {
         setLoading(true);
         console.log('🔍 Fetching news articles from API...');
         
-        const response = await fetch('/api/v1/seo-news/category/Technology', {
+        const response = await fetch('https://tenantapi.theartemis.ai/api/v1/seo-news/category/Technology', {
           method: 'GET',
           headers: {
             'accept': '*/*',

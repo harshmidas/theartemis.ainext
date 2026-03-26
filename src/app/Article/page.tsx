@@ -63,7 +63,7 @@ const ArticlePage = () => {
         setError(null);
         
         console.log('🔍 Fetching articles from API...');
-        const response = await fetch('api/v1/seo-articles/category/AI%20in%20Healthcare', {
+        const response = await fetch('https://tenantapi.theartemis.ai/api/v1/seo-articles/category/AI%20in%20Healthcare', {
           method: 'GET',
           headers: {
             'accept': '*/*',
