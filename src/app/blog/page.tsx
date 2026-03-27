@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import styles from './BlogPost.module.css';
+import React, { useState, useEffect } from "react";
+import styles from "./BlogPost.module.css";
 
 interface BlogPostData {
   id: string;
+  websiteId: string;           // added from new API
   title: string;
   slug: string;
   content: string;
@@ -47,13 +48,12 @@ interface BlogPostData {
   createdBy: string;
   updatedBy: string;
   metadata: {
-    website?: string;
+    targetAudience?: string;
+    difficulty?: string;
+    region?: string;
     contentType?: string;
     series?: string;
-    readTimeCategory?: string;
-    relatedCompanies?: string[];
-    language?: string;
-    geoTarget?: string;
+    [key: string]: any;
   };
 }
 
@@ -61,59 +61,69 @@ const BlogPost: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPostData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPost, setSelectedPost] = useState<BlogPostData | null>(null);
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
   const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([]);
 
-  // Fetch blog posts from API
+  // Fetch blog posts from new API
   const fetchBlogPosts = async () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('🔍 Fetching blog posts from API...');
+      console.log("🔍 Fetching blog posts from new API...");
 
-      const response = await fetch('/api/v1/seo-blogs/category/Funding', {
-        method: 'GET',
-        headers: {
-          accept: '*/*',
-          'X-Tenant': '68b20dd0fb42964f2328b424',
-        },
-      });
+      const response = await fetch(
+        "https://5cc5-103-16-29-36.ngrok-free.app/api/v1/seo-websites/69c6cb641673f94b68ce9990/blogs",
+        {
+          method: "GET",
+          headers: {
+            accept: "*/*",
+            "X-Tenant": "670a48b168b0640a262870c4",
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status} — ${response.statusText}`);
       }
 
       const data: BlogPostData[] = await response.json();
-      console.log('✅ Blog API Response received:', data);
+      console.log("✅ Blog API Response received:", data);
       console.log(`📊 Total blog posts from API: ${data.length}`);
 
       // Normalize dates (convert seconds to milliseconds if needed)
-      const normalizedData = data.map(post => ({
+      const normalizedData = data.map((post) => ({
         ...post,
         publishedAt:
-          typeof post.publishedAt === 'number' && post.publishedAt < 1e12
+          typeof post.publishedAt === "number" && post.publishedAt < 1e12
             ? post.publishedAt * 1000
             : post.publishedAt,
+        createdAt:
+          typeof post.createdAt === "number" && post.createdAt < 1e12
+            ? post.createdAt * 1000
+            : post.createdAt,
+        updatedAt:
+          typeof post.updatedAt === "number" && post.updatedAt < 1e12
+            ? post.updatedAt * 1000
+            : post.updatedAt,
       }));
 
-      // Filter only published posts (regardless of status)
-      const publishedPosts = normalizedData.filter(post => post.published === true);
+      // Filter only published posts
+      const publishedPosts = normalizedData.filter((post) => post.published === true);
       console.log(`🎯 Published blog posts after filtering: ${publishedPosts.length}`);
       setBlogPosts(publishedPosts);
 
-      // Set related posts (first 3 or based on relatedBlogIds)
+      // Set related posts (first 3)
       if (publishedPosts.length > 0) {
-        // Optionally, you can map relatedBlogIds to actual posts here
         setRelatedPosts(publishedPosts.slice(0, 3));
       } else {
         setRelatedPosts([]);
       }
     } catch (err) {
-      console.error('❌ Error fetching blog posts:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load blog posts');
+      console.error("❌ Error fetching blog posts:", err);
+      setError(err instanceof Error ? err.message : "Failed to load blog posts");
     } finally {
       setLoading(false);
     }
@@ -123,15 +133,13 @@ const BlogPost: React.FC = () => {
     fetchBlogPosts();
   }, []);
 
-  // Retry handler
   const handleRetry = () => {
     fetchBlogPosts();
   };
 
-  // Handle post card click
   const handlePostClick = (post: BlogPostData) => {
     setSelectedPost(post);
-    setExpandedPosts(prev => {
+    setExpandedPosts((prev) => {
       const newSet = new Set(prev);
       newSet.add(post.id);
       return newSet;
@@ -140,13 +148,13 @@ const BlogPost: React.FC = () => {
     setTimeout(() => {
       const element = document.getElementById(`post-${post.slug}`);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 100);
   };
 
   const togglePostExpansion = (postId: string) => {
-    setExpandedPosts(prev => {
+    setExpandedPosts((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(postId)) newSet.delete(postId);
       else newSet.add(postId);
@@ -154,36 +162,40 @@ const BlogPost: React.FC = () => {
     });
   };
 
-  const categories = ['All', ...new Set(blogPosts.map(post => post.category))];
+  const categories = ["All", ...new Set(blogPosts.map((post) => post.category))];
 
-  const filteredPosts = blogPosts.filter(post => {
+  const filteredPosts = blogPosts.filter((post) => {
     const matchesSearch =
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+      (post.tags && post.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())));
 
-    const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
+    const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const formatDate = (dateValue: number) => {
     try {
       const ms = dateValue < 1e12 ? dateValue * 1000 : dateValue;
-      return new Date(ms).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
+      return new Date(ms).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
       });
     } catch {
-      return 'Invalid date';
+      return "Invalid date";
     }
   };
 
-  const formatNumber = (num: number) => (num >= 1000 ? (num / 1000).toFixed(1) + 'k' : num.toString());
+  const formatNumber = (num: number) => (num >= 1000 ? (num / 1000).toFixed(1) + "k" : num.toString());
 
-  const handleShare = (post: BlogPostData, platform: 'twitter' | 'linkedin' | 'facebook' | 'copy', e: React.MouseEvent) => {
+  const handleShare = (
+    post: BlogPostData,
+    platform: "twitter" | "linkedin" | "facebook" | "copy",
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
-    const url = typeof window !== 'undefined' ? `${window.location.origin}/blog/${post.slug}` : '';
+    const url = typeof window !== "undefined" ? `${window.location.origin}/blog/${post.slug}` : "";
     const title = post.title;
     const shareUrls = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
@@ -192,11 +204,11 @@ const BlogPost: React.FC = () => {
       copy: url,
     };
 
-    if (platform === 'copy') {
+    if (platform === "copy") {
       navigator.clipboard.writeText(url);
-      alert('Link copied to clipboard!');
+      alert("Link copied to clipboard!");
     } else {
-      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+      window.open(shareUrls[platform], "_blank", "width=600,height=400");
     }
   };
 
@@ -220,7 +232,7 @@ const BlogPost: React.FC = () => {
     return (
       <div className={styles.errorContainer}>
         <div className={styles.errorContent}>
-          <div className={styles.errorIcon}>⚠️</div>
+          <div className={styles.errorIcon}>Error</div>
           <h1 className={styles.errorTitle}>Error Loading Blog Posts</h1>
           <p className={styles.errorMessage}>{error}</p>
           <p className={styles.errorHint}>
@@ -239,7 +251,9 @@ const BlogPost: React.FC = () => {
       {/* Header */}
       <header className={styles.header}>
         <nav className={styles.breadcrumb}>
-          <a href="/" className={styles.breadcrumbLink}>Home</a>
+          <a href="/" className={styles.breadcrumbLink}>
+            Home
+          </a>
           <span className={styles.breadcrumbSeparator}>/</span>
           <span className={styles.breadcrumbCurrent}>Blog</span>
         </nav>
@@ -254,7 +268,7 @@ const BlogPost: React.FC = () => {
               <span className={styles.statLabel}>Total Posts</span>
             </div>
             <div className={styles.statItem}>
-              <span className={styles.statNumber}>{blogPosts.filter(p => p.featured).length}</span>
+              <span className={styles.statNumber}>{blogPosts.filter((p) => p.featured).length}</span>
               <span className={styles.statLabel}>Featured</span>
             </div>
             <div className={styles.statItem}>
@@ -267,16 +281,20 @@ const BlogPost: React.FC = () => {
 
       {/* API Status Info */}
       <div className={styles.apiStatus}>
-        <strong>📡 API Status:</strong> Connected to{' '}
-        <code>/api/v1/seo-blogs/category/Funding</code> | Showing{' '}
-        <strong>{filteredPosts.length}</strong> of <strong>{blogPosts.length}</strong> published posts
-        {selectedPost && <span> | 📖 Viewing: <strong>{selectedPost.title}</strong></span>}
+        <strong>API Status:</strong> Connected to{" "}
+        <code>https://5cc5-103-16-29-36.ngrok-free.app/api/v1/seo-websites/69c6cb641673f94b68ce9990/blogs</code>{" "}
+        | Showing <strong>{filteredPosts.length}</strong> of <strong>{blogPosts.length}</strong> published posts
+        {selectedPost && (
+          <span>
+            {" "}
+            | Viewing: <strong>{selectedPost.title}</strong>
+          </span>
+        )}
       </div>
 
       {/* Filters Section */}
       <div className={styles.filtersSection}>
         <div className={styles.searchBox}>
-          <div className={styles.searchIcon}>🔍</div>
           <input
             type="text"
             placeholder="Search blog posts, tags, or topics..."
@@ -285,17 +303,17 @@ const BlogPost: React.FC = () => {
             className={styles.searchInput}
           />
           {searchTerm && (
-            <button onClick={() => setSearchTerm('')} className={styles.clearSearch}>
-              ✕
+            <button onClick={() => setSearchTerm("")} className={styles.clearSearch}>
+              Clear
             </button>
           )}
         </div>
         <div className={styles.categoryFilters}>
-          {categories.map(category => (
+          {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`${styles.categoryFilter} ${selectedCategory === category ? styles.active : ''}`}
+              className={`${styles.categoryFilter} ${selectedCategory === category ? styles.active : ""}`}
             >
               {category}
             </button>
@@ -308,14 +326,14 @@ const BlogPost: React.FC = () => {
         {filteredPosts.map((post) => (
           <article
             key={post.id}
-            className={`${styles.postCard} ${post.featured ? styles.featured : ''} ${
-              selectedPost?.id === post.id ? styles.selected : ''
+            className={`${styles.postCard} ${post.featured ? styles.featured : ""} ${
+              selectedPost?.id === post.id ? styles.selected : ""
             }`}
             onClick={() => handlePostClick(post)}
           >
             {post.featured && (
               <div className={styles.featuredRibbon}>
-                <span>⭐ Featured</span>
+                <span>Featured</span>
               </div>
             )}
             <div className={styles.cardImageContainer}>
@@ -339,7 +357,7 @@ const BlogPost: React.FC = () => {
                 <span className={styles.readingTime}>{post.readingTimeMinutes || 5} min read</span>
               </div>
               <h2 className={styles.cardTitle}>{post.title}</h2>
-              <p className={styles.cardSummary}>{post.excerpt || 'No excerpt available'}</p>
+              <p className={styles.cardSummary}>{post.excerpt || "No excerpt available"}</p>
               <div className={styles.cardAuthor}>
                 <div className={styles.authorInfo}>
                   {post.authorAvatar && (
@@ -347,11 +365,11 @@ const BlogPost: React.FC = () => {
                       src={post.authorAvatar}
                       alt={post.author}
                       className={styles.authorAvatar}
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                      onError={(e) => (e.currentTarget.style.display = "none")}
                     />
                   )}
                   <div className={styles.authorDetails}>
-                    <span className={styles.authorName}>{post.author || 'Unknown Author'}</span>
+                    <span className={styles.authorName}>{post.author || "Unknown Author"}</span>
                     {post.authorBio && (
                       <span className={styles.authorBio}>
                         {post.authorBio.length > 60 ? `${post.authorBio.substring(0, 60)}...` : post.authorBio}
@@ -373,27 +391,27 @@ const BlogPost: React.FC = () => {
               <div className={styles.cardFooter}>
                 <div className={styles.cardStats}>
                   <div className={styles.stat}>
-                    <span className={styles.statIcon}>👁️</span>
+                    <span className={styles.statLabel}>Views:</span>
                     <span>{formatNumber(post.viewCount || 0)}</span>
                   </div>
                   <div className={styles.stat}>
-                    <span className={styles.statIcon}>💬</span>
+                    <span className={styles.statLabel}>Comments:</span>
                     <span>{formatNumber(post.commentCount || 0)}</span>
                   </div>
                   <div className={styles.stat}>
-                    <span className={styles.statIcon}>📤</span>
+                    <span className={styles.statLabel}>Shares:</span>
                     <span>{formatNumber(post.shareCount || 0)}</span>
                   </div>
                 </div>
                 <div className={styles.cardActions}>
-                  <button onClick={(e) => handleShare(post, 'twitter', e)} className={styles.actionButton} title="Share on Twitter">
-                    🐦
+                  <button onClick={(e) => handleShare(post, "twitter", e)} className={styles.actionButton} title="Share on Twitter">
+                    Tweet
                   </button>
-                  <button onClick={(e) => handleShare(post, 'linkedin', e)} className={styles.actionButton} title="Share on LinkedIn">
-                    💼
+                  <button onClick={(e) => handleShare(post, "linkedin", e)} className={styles.actionButton} title="Share on LinkedIn">
+                    Share
                   </button>
                   <button onClick={(e) => handleBookmark(post.id, e)} className={styles.actionButton} title="Bookmark post">
-                    📑
+                    Bookmark
                   </button>
                 </div>
               </div>
@@ -408,16 +426,14 @@ const BlogPost: React.FC = () => {
           <section
             key={post.id}
             id={`post-${post.slug}`}
-            className={`${styles.postDetail} ${expandedPosts.has(post.id) ? styles.expanded : ''}`}
+            className={`${styles.postDetail} ${expandedPosts.has(post.id) ? styles.expanded : ""}`}
           >
             <div className={styles.postDetailHeader}>
               <div className={styles.postDetailMeta}>
                 <span className={styles.postDetailCategory}>{post.category}</span>
                 <span className={styles.postDetailDate}>{formatDate(post.publishedAt)}</span>
                 <span className={styles.postDetailReadingTime}>{post.readingTimeMinutes || 5} min read</span>
-                {post.metadata?.series && (
-                  <span className={styles.seriesBadge}>Series: {post.metadata.series}</span>
-                )}
+                {post.metadata?.series && <span className={styles.seriesBadge}>Series: {post.metadata.series}</span>}
               </div>
               <h1 className={styles.postDetailTitle}>{post.title}</h1>
               <p className={styles.postDetailExcerpt}>{post.excerpt}</p>
@@ -438,6 +454,42 @@ const BlogPost: React.FC = () => {
             </div>
             <div className={styles.postDetailContent}>
               <div className={styles.postContent} dangerouslySetInnerHTML={renderPostContent(post.content)} />
+              {/* Additional Metadata */}
+              {post.metadata && Object.keys(post.metadata).length > 0 && (
+                <div className={styles.metadataSection}>
+                  <h4>Additional Information</h4>
+                  <div className={styles.metadataGrid}>
+                    {post.metadata.targetAudience && (
+                      <div className={styles.metadataItem}>
+                        <strong>Target Audience:</strong> <span>{post.metadata.targetAudience}</span>
+                      </div>
+                    )}
+                    {post.metadata.difficulty && (
+                      <div className={styles.metadataItem}>
+                        <strong>Difficulty:</strong> <span>{post.metadata.difficulty}</span>
+                      </div>
+                    )}
+                    {post.metadata.region && (
+                      <div className={styles.metadataItem}>
+                        <strong>Region:</strong> <span>{post.metadata.region}</span>
+                      </div>
+                    )}
+                    {post.metadata.contentType && (
+                      <div className={styles.metadataItem}>
+                        <strong>Content Type:</strong> <span>{post.metadata.contentType}</span>
+                      </div>
+                    )}
+                    {/* Fallback for any other metadata fields */}
+                    {Object.entries(post.metadata)
+                      .filter(([key]) => !["targetAudience", "difficulty", "region", "contentType", "series"].includes(key))
+                      .map(([key, value]) => (
+                        <div key={key} className={styles.metadataItem}>
+                          <strong>{key.replace(/([A-Z])/g, " $1").trim()}:</strong> <span>{String(value)}</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
               {post.tags && post.tags.length > 0 && (
                 <div className={styles.postDetailTags}>
                   <h4>Topics Covered</h4>
@@ -465,7 +517,7 @@ const BlogPost: React.FC = () => {
                     {post.seoMeta.metaKeywords && (
                       <div className={styles.seoMetaItem}>
                         <strong>Keywords:</strong>
-                        <span>{post.seoMeta.metaKeywords.join(', ')}</span>
+                        <span>{post.seoMeta.metaKeywords.join(", ")}</span>
                       </div>
                     )}
                   </div>
@@ -473,20 +525,20 @@ const BlogPost: React.FC = () => {
               )}
               <div className={styles.postDetailActions}>
                 <button onClick={() => togglePostExpansion(post.id)} className={styles.collapseButton}>
-                  {expandedPosts.has(post.id) ? '▲ Collapse' : '▼ Expand'}
+                  {expandedPosts.has(post.id) ? "Collapse" : "Expand"}
                 </button>
                 <div className={styles.postSocialActions}>
                   <span>Share: </span>
-                  <button onClick={(e) => handleShare(post, 'twitter', e)} className={styles.socialButton}>
+                  <button onClick={(e) => handleShare(post, "twitter", e)} className={styles.socialButton}>
                     Twitter
                   </button>
-                  <button onClick={(e) => handleShare(post, 'linkedin', e)} className={styles.socialButton}>
+                  <button onClick={(e) => handleShare(post, "linkedin", e)} className={styles.socialButton}>
                     LinkedIn
                   </button>
-                  <button onClick={(e) => handleShare(post, 'facebook', e)} className={styles.socialButton}>
+                  <button onClick={(e) => handleShare(post, "facebook", e)} className={styles.socialButton}>
                     Facebook
                   </button>
-                  <button onClick={(e) => handleShare(post, 'copy', e)} className={styles.socialButton}>
+                  <button onClick={(e) => handleShare(post, "copy", e)} className={styles.socialButton}>
                     Copy Link
                   </button>
                 </div>
@@ -526,17 +578,23 @@ const BlogPost: React.FC = () => {
       {/* Empty State */}
       {filteredPosts.length === 0 && (
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>🔍</div>
+          <div className={styles.emptyIcon}>No results</div>
           <h3 className={styles.emptyTitle}>No blog posts found</h3>
           <p className={styles.emptyMessage}>
-            {searchTerm || selectedCategory !== 'All'
-              ? 'Try adjusting your search or filter criteria'
+            {searchTerm || selectedCategory !== "All"
+              ? "Try adjusting your search or filter criteria"
               : blogPosts.length === 0
-                ? 'No published blog posts available from the API'
-                : 'No posts match your criteria'}
+              ? "No published blog posts available from the API"
+              : "No posts match your criteria"}
           </p>
-          {(searchTerm || selectedCategory !== 'All') && (
-            <button onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }} className={styles.primaryButton}>
+          {(searchTerm || selectedCategory !== "All") && (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("All");
+              }}
+              className={styles.primaryButton}
+            >
               Clear Filters
             </button>
           )}
