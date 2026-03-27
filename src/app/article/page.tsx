@@ -94,7 +94,7 @@ const ArticlePage = () => {
 
         console.log('Fetching articles from new API...');
         const response = await fetch(
-          'https://5cc5-103-16-29-36.ngrok-free.app/api/v1/seo-websites/69c6cb641673f94b68ce9990/articles',
+          'https://tenantapi.theartemis.ai/api/v1/seo-websites/69c6cb641673f94b68ce9990/articles',
           {
             method: 'GET',
             headers: {

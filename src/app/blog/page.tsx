@@ -75,7 +75,7 @@ const BlogPost: React.FC = () => {
       console.log("🔍 Fetching blog posts from new API...");
 
       const response = await fetch(
-        "https://5cc5-103-16-29-36.ngrok-free.app/api/v1/seo-websites/69c6cb641673f94b68ce9990/blogs",
+        "https://tenantapi.theartemis.ai/api/v1/seo-websites/69c6cb641673f94b68ce9990/blogs",
         {
           method: "GET",
           headers: {
@@ -282,7 +282,7 @@ const BlogPost: React.FC = () => {
       {/* API Status Info */}
       <div className={styles.apiStatus}>
         <strong>API Status:</strong> Connected to{" "}
-        <code>https://5cc5-103-16-29-36.ngrok-free.app/api/v1/seo-websites/69c6cb641673f94b68ce9990/blogs</code>{" "}
+        <code>https://tenantapi.theartemis.ai/api/v1/seo-websites/69c6cb641673f94b68ce9990/blogs</code>{" "}
         | Showing <strong>{filteredPosts.length}</strong> of <strong>{blogPosts.length}</strong> published posts
         {selectedPost && (
           <span>
